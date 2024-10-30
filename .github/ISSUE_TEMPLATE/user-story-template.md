@@ -10,10 +10,11 @@ assignees: ''
 Som * behöver jag * för att *
 
 
-*Kriterier
+ Kriterier
+***
 
-**Kriterie 1
+- Kriterie 1
 
-**...
+- .
 
 ****
