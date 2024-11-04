@@ -9,8 +9,11 @@ namespace Parkeringsgarage
 {
     public class Incheckning
     {
+       
         public static void CheckIn()
         {
+            
+            Garage.GarageGrid();
             Console.Clear();
             Console.WriteLine("Välkommen till Smart Parking!");
             bool running = true;
