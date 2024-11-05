@@ -13,43 +13,33 @@ namespace Parkeringsgarage
 
         public static void GarageGrid()
         {
-            garageGrid = new int[100, 25];
-
-            while (true)
-            {
-                
-                DisplayGrid();
-               
-                Console.Clear();
-            }
+            
+            garageGrid = new int[30, 85];
+            DisplayGrid();
         }
 
 
         public static void DisplayGrid()
         {
-            bool minbool=true;
-            while (minbool) 
-            for (int row = 0; row < garageGrid.GetLength(0); row++)
-            {
-                for (int col = 0; col < garageGrid.GetLength(1); col++)
+                for (int row = 0; row < garageGrid.GetLength(0); row++)
                 {
-                    switch (garageGrid[row, col])
+                    for (int col = 0; col < garageGrid.GetLength(1); col++)
                     {
-                        case 0:
-                            Console.Write(". ");
-                            
-                            break;
-                           
-                        default:
-                            Console.Write("? ");
+                        switch (garageGrid[row, col])
+                        {
+                            case 0:
+                                Console.Write(". ");
 
-                            break;
+                                break;
+
+                            default:
+                                Console.Write("? ");
+
+                                break;
+                        }
                     }
-                    
-                }  
-                Console.WriteLine();
-              
-            }
+                    Console.WriteLine();
+                }
         }
     }
 }

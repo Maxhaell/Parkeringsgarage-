@@ -14,11 +14,11 @@ namespace Parkeringsgarage
         {
             
             Garage.GarageGrid();
-            Console.Clear();
             Console.WriteLine("Välkommen till Smart Parking!");
             bool running = true;
             while (running)
             {
+                Console.SetCursorPosition(35, 0);
                 Console.WriteLine("Meny - Smart Parking");
                 Console.WriteLine("====================");
                 Console.WriteLine("Tryck 1 för Parkeringsgäst");
@@ -27,7 +27,7 @@ namespace Parkeringsgarage
                 Console.WriteLine("Tryck 0 för att avsluta");
 
                 ConsoleKeyInfo key = Console.ReadKey();
-                Console.Clear();
+                Garage.DisplayGrid();
 
                 switch (key.KeyChar)
                 {
@@ -52,7 +52,7 @@ namespace Parkeringsgarage
             bool inParkingGuestMenu = true;
             while (inParkingGuestMenu)
             {
-                Console.Clear();
+                Garage.DisplayGrid();
                 Console.WriteLine("Välkommen Parkeringsgäst!");
                 Console.WriteLine("Vad har du för fordonstyp");
                 Console.WriteLine("====");
@@ -90,6 +90,7 @@ namespace Parkeringsgarage
             while (inCheckin)
             {
                 Console.Clear();
+                Garage.DisplayGrid();
                 Console.WriteLine($"Registrering av {vehicleType}");
                 Console.WriteLine("====");
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
@@ -100,7 +101,6 @@ namespace Parkeringsgarage
                 Console.WriteLine("0. Gå tillbaka");
 
                 ConsoleKeyInfo choice = Console.ReadKey();
-                Console.Clear();
 
                 switch (choice.KeyChar)
                 {
@@ -150,6 +150,7 @@ namespace Parkeringsgarage
         private static void ShowSummary(string vehicleType, string regNr, string carBrand, string color, string parkTime)
         {
             Console.Clear();
+            Garage.DisplayGrid();
             Console.WriteLine("Sammanfattning av registrering");
             Console.WriteLine("====");
             Console.WriteLine($"Fordonstyp: {vehicleType}");
