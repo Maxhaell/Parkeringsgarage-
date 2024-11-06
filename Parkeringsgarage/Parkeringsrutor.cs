@@ -17,7 +17,7 @@ namespace Parkeringsgarage
                 row = Garage.random.Next(Garage.garageGrid.GetLength(0));
                 col = Garage.random.Next(Garage.garageGrid.GetLength(1));
             }
-            while (Garage.garageGrid[row, col] != 0);
+            while (Garage.garageGrid[row, col] != 3);
 
             Garage.garageGrid[row, col] = vehicleValue;
             vehicle.Row = row;
