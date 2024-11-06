@@ -129,6 +129,7 @@ namespace Parkeringsgarage
                         if (ValidateCheckin(regNr, carBrand, color, parkTime))
                         {
                             ShowSummary(vehicleType, regNr, carBrand, color, parkTime);
+                            Parkeringsrutor.ParkVehicle(new Car(regNr, new List<Helpers>()), 2);
                             return true;
                         }
                         break;

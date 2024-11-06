@@ -20,7 +20,6 @@ namespace Parkeringsgarage
         }
     }
 
-    // The thief
     public class Car : Fordon
     { 
         
