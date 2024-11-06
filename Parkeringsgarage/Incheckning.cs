@@ -15,11 +15,13 @@ namespace Parkeringsgarage
         {
            
             Garage.GarageGrid();
-            Console.WriteLine("Välkommen till Smart Parking!");
+            Console.Clear();
             bool running = true;
             while (running)
             {
                 Garage.DisplayGrid();
+                Console.WriteLine("Välkommen till Smart Parking!");
+                Console.WriteLine("====================");
                 Console.WriteLine("Meny - Smart Parking");
                 Console.WriteLine("====================");
                 Console.WriteLine("Tryck 1 för Parkeringsgäst");
