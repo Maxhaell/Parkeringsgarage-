@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,13 +13,13 @@ namespace Parkeringsgarage
        
         public static void CheckIn()
         {
-            
+           
             Garage.GarageGrid();
             Console.WriteLine("Välkommen till Smart Parking!");
             bool running = true;
             while (running)
             {
-                Console.SetCursorPosition(35, 0);
+                Garage.DisplayGrid();
                 Console.WriteLine("Meny - Smart Parking");
                 Console.WriteLine("====================");
                 Console.WriteLine("Tryck 1 för Parkeringsgäst");
@@ -27,7 +28,7 @@ namespace Parkeringsgarage
                 Console.WriteLine("Tryck 0 för att avsluta");
 
                 ConsoleKeyInfo key = Console.ReadKey();
-                Garage.DisplayGrid();
+                Console.Clear();
 
                 switch (key.KeyChar)
                 {
