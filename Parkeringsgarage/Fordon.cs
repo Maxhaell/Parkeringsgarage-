@@ -31,4 +31,31 @@ namespace Parkeringsgarage
         public override string ToString() => $"Car {RegNr}";
 
     }
+
+    public class Motorcycle : Fordon
+    {
+
+        public List<Helpers> Brand { get; set; } = new List<Helpers>();
+        public Motorcycle(string regNr, List<Helpers> brand) : base(regNr)
+        {
+            Brand = brand;
+        }
+        public override string ToString() => $"Motorcycle {RegNr}";
+      
+
+    }
+
+    public class Bus : Fordon
+    {
+
+        public List<Helpers> Seats { get; set; } = new List<Helpers>();
+        public Bus(string regNr, List<Helpers> seats) : base(regNr)
+        {
+            Seats = seats;
+        }
+        public override string ToString() => $"Bus {RegNr}";
+
+
+    }
+
 }
