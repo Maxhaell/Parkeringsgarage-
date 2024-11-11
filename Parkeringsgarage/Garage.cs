@@ -95,7 +95,7 @@ namespace Parkeringsgarage
                     // Buss (4x4)
                     for (int i = 0; i < 4; i++)
                     {
-                        for (int j = 0; j < 4; j++)
+                        for (int j = 0; j < 2; j++)
                         {
                             garageGrid[row + i, col + j] = 6;
                         }
@@ -226,28 +226,28 @@ namespace Parkeringsgarage
                             Console.Write("░░");
                             break;
                         case 1: // Bil
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.Write("██");
+                       //     Console.ForegroundColor = Incheckning.HandleVehicleCheckin.List<colorOptions>;
+                            Console.Write("C");
                             break;
                         case 2: // Motorcykel
-                            Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.Write("██");
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.Write("M");
                             break;
                         case 3: // Ledig plats
-                            Console.ForegroundColor = ConsoleColor.Blue;
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
                             Console.Write("□□");
                             break;
                         case 4: // Väggar
-                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
                             Console.Write("██");
                             break;
                         case 5: // Ingång
-                            Console.ForegroundColor = ConsoleColor.Cyan;
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
                             Console.Write("▒▒");
                             break;
                         case 6: // Buss
-                            Console.ForegroundColor = ConsoleColor.Magenta;
-                            Console.Write("██");
+                            Console.ForegroundColor = ConsoleColor.White;
+                            Console.Write("B");
                             break;
                         default:
                             Console.ForegroundColor = ConsoleColor.White;
@@ -259,42 +259,42 @@ namespace Parkeringsgarage
             }
 
             
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("\n    Legend:");
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("    □□ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Ledig plats  ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.WriteLine("\n    Legend:");
+            //Console.ForegroundColor = ConsoleColor.Blue;
+            //Console.Write("    □□ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.Write("- Ledig plats  ");
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("██ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Bil (2x2)  ");
+            //Console.ForegroundColor = ConsoleColor.Green;
+            //Console.Write("██ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.Write("- Bil (2x2)  ");
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("██ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Motorcykel (1x2)  ");
+            //Console.ForegroundColor = ConsoleColor.Yellow;
+            //Console.Write("██ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.Write("- Motorcykel (1x2)  ");
 
-            Console.ForegroundColor = ConsoleColor.Magenta;
-            Console.Write("██ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("- Buss (4x4)");
+            //Console.ForegroundColor = ConsoleColor.Magenta;
+            //Console.Write("██ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.WriteLine("- Buss (4x4)");
 
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write("    ██ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Vägg  ");
+            //Console.ForegroundColor = ConsoleColor.Red;
+            //Console.Write("    ██ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.Write("- Vägg  ");
 
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write("░░ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Körväg  ");
+            //Console.ForegroundColor = ConsoleColor.DarkGray;
+            //Console.Write("░░ ");
+            //Console.ForegroundColor = ConsoleColor.White;
+            //Console.Write("- Körväg  ");
 
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("▒▒ ");
+            //Console.ForegroundColor = ConsoleColor.Cyan;
+            //Console.Write("▒▒ ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("- Ingång");
+            //Console.WriteLine("- Ingång");
             Console.WriteLine();
         }
 

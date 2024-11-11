@@ -10,6 +10,8 @@ namespace Parkeringsgarage
 {
     public class Incheckning
     {
+       // public static void List<List>colorOptions();
+
         public static void CheckIn()
         {
             Garage.GarageGrid();
@@ -83,12 +85,24 @@ namespace Parkeringsgarage
             }
         }
 
-        private static bool HandleVehicleCheckin(string vehicleType)
+        public static bool HandleVehicleCheckin(string vehicleType)
         {
             bool inCheckin = true;
             string regNr = "", carBrand = "", color = "", parkTime = "";
+            ConsoleColor selectedColor = ConsoleColor.White;
             bool isElectric = false;
             int passengers = 0;
+
+            List<(string name, ConsoleColor color)> colorOptions = new()
+            {
+                ("röd ", ConsoleColor.Red),
+                ("grön ", ConsoleColor.Green),
+                ("blå ", ConsoleColor.Blue),
+                ("gul ", ConsoleColor.Yellow),
+                ("cyan ", ConsoleColor.Cyan),
+                ("magenta ", ConsoleColor.Magenta)
+            };
+
 
             while (inCheckin)
             {
@@ -98,7 +112,8 @@ namespace Parkeringsgarage
                 Console.WriteLine("====");
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
                 Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(carBrand) ? $" (angivet: {carBrand})" : ""));
-                Console.WriteLine("3. Ange färg" + (!string.IsNullOrEmpty(color) ? $" (angivet: {color})" : ""));
+                var selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
+                Console.WriteLine("3. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : "")); 
                 Console.WriteLine("4. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
 
                 if (vehicleType == "bil")
@@ -125,7 +140,21 @@ namespace Parkeringsgarage
                         break;
                     case '3':
                         Console.WriteLine("\nSkriv in färg:");
-                        color = Console.ReadLine() ?? string.Empty;
+                        for (int i = 0; i < colorOptions.Count; i++)
+                        {
+                            Console.ForegroundColor = colorOptions[i].color;
+                            Console.WriteLine($"{i + 1}.{colorOptions[i].name}");
+                        }
+                        Console.ForegroundColor = ConsoleColor.White;
+                        if(int.TryParse(Console.ReadLine(),out int colorChoice) && colorChoice > 0 && colorChoice <= colorOptions.Count)
+                        {
+                            selectedColor = colorOptions[colorChoice - 1].color;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ogiltigt val, försök igen!");
+                            Console.ReadLine();
+                        }
                         break;
                     case '4':
                         Console.WriteLine("\nHur länge vill du parkera? (minuter)");
@@ -148,7 +177,7 @@ namespace Parkeringsgarage
                         }
                         break;
                     case '6':
-                        if (ValidateCheckin(regNr, carBrand, color, parkTime))
+                        if (ValidateCheckin(regNr, carBrand, selectedColorName, parkTime))
                         {
                             Fordon vehicle;
                             if (vehicleType == "bil")
@@ -163,7 +192,7 @@ namespace Parkeringsgarage
                                 vehicle = new Fordon(regNr);
                             }
 
-                            ShowSummary(vehicleType, regNr, carBrand, color, parkTime, isElectric, passengers);
+                            ShowSummary(vehicleType, regNr, carBrand, selectedColorName, parkTime, isElectric, passengers);
 
                             int row, col;
                             if (Garage.ParkVehicle(vehicleType, out row, out col))
@@ -199,7 +228,7 @@ namespace Parkeringsgarage
             return true;
         }
 
-        private static bool ValidateCheckin(string regNr, string carBrand, string color, string parkTime)
+        public static bool ValidateCheckin(string regNr, string carBrand, string color, string parkTime)
         {
             if (string.IsNullOrEmpty(regNr) || string.IsNullOrEmpty(carBrand) ||
                 string.IsNullOrEmpty(color) || string.IsNullOrEmpty(parkTime))
@@ -230,7 +259,7 @@ namespace Parkeringsgarage
             return true;
         }
 
-        private static void ShowSummary(string vehicleType, string regNr, string carBrand, string color, string parkTime, bool isElectric = false, int passengers = 0)
+        public static void ShowSummary(string vehicleType, string regNr, string carBrand, string color, string parkTime, bool isElectric = false, int passengers = 0)
         {
             Console.Clear();
             Garage.DisplayGrid();
