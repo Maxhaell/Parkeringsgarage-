@@ -57,9 +57,9 @@ namespace Parkeringsgarage
                 Console.WriteLine("Välkommen Parkeringsgäst!");
                 Console.WriteLine("Vad har du för fordonstyp");
                 Console.WriteLine("====");
-                Console.WriteLine("Tryck 1 för att parkera bil ");
-                Console.WriteLine("Tryck 2 för att parkera motorcykel ");
-                Console.WriteLine("Tryck 3 för buss ");
+                Console.WriteLine("Tryck 1 för bil (2x2 platser)");
+                Console.WriteLine("Tryck 2 för motorcykel (1x1 plats)");
+                Console.WriteLine("Tryck 3 för buss (4x4 platser)");
                 Console.WriteLine("Tryck 0 för att gå tillbaka till huvudmenyn");
 
                 ConsoleKeyInfo key = Console.ReadKey();
@@ -83,7 +83,7 @@ namespace Parkeringsgarage
             }
         }
 
-        public static bool HandleVehicleCheckin(string vehicleType)
+        private static bool HandleVehicleCheckin(string vehicleType)
         {
             bool inCheckin = true;
             string regNr = "", carBrand = "", color = "", parkTime = "";
@@ -166,7 +166,7 @@ namespace Parkeringsgarage
                             ShowSummary(vehicleType, regNr, carBrand, color, parkTime, isElectric, passengers);
 
                             int row, col;
-                            if ( Parkeringsrutor.ParkVehicle(vehicleType, out row, out col))
+                            if (Garage.ParkVehicle(vehicleType, out row, out col))
                             {
                                 vehicle.Row = row;
                                 vehicle.Col = col;
@@ -218,7 +218,7 @@ namespace Parkeringsgarage
                 return false;
             }
 
-            // Validera registreringsnummer (svensk standard: ABC123)
+            // registreringsnummer (svensk standard: ABC123)
             if (!System.Text.RegularExpressions.Regex.IsMatch(regNr, @"^[A-Z]{3}\d{3}$"))
             {
                 Console.WriteLine("\nOgiltigt registreringsnummer. Använd formatet ABC123.");
@@ -287,7 +287,7 @@ namespace Parkeringsgarage
                 Console.WriteLine($"{vehicle.Key}: {vehicle.Value} st");
             }
 
-            // Visa beläggningsgrad
+            
             int totalSpots = Garage.numberOfParkingSpots;
             int occupiedSpots = Garage.fordon.Count;
             double occupancyRate = (double)occupiedSpots / totalSpots * 100;
@@ -317,13 +317,11 @@ namespace Parkeringsgarage
 
         private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
         {
-            // Här skulle man normalt hämta faktisk data från en databas
-            // För demonstration används exempel-värden
+            
             return (totalRevenue: 2450.50,
                     totalVehicles: Garage.fordon.Count,
                     averageParkingTime: 120.0,
                     occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
         }
-
     }
 }

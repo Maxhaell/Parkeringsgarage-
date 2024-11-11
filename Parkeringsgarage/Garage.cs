@@ -11,47 +11,91 @@ namespace Parkeringsgarage
     {
         public static int[,] garageGrid;
         public static int[,] parkingGrid;
-        public static int numberOfParkingSpots = 75;
+        public static int numberOfParkingSpots = 20;
         public static List<Fordon> fordon = new List<Fordon>();
         public static Random random = new Random();
-        public static int currentParkingRow = 1;
-        public static int currentParkingCol = 1;
+        private static int currentParkingRow = 1;
+        private static int currentParkingCol = 1;
 
         public static void GarageGrid()
         {
-            garageGrid = new int[24, 40];
+            garageGrid = new int[24, 40]; 
             parkingGrid = new int[2, 2] { { 3, 3 }, { 3, 3 } };
             fordon = new List<Fordon>();
+            currentParkingRow = 1;
+            currentParkingCol = 1;
             PlaceParkingGrid();
-            DisplayGrid();
             DrawGarageFrame();
+            DisplayGrid();
         }
 
         public static void PlaceParkingGrid()
         {
-
-
-            for (int i = 0; i < garageGrid.GetLength(0) - 1; i++)
+            // Markera alla möjliga parkeringsplatser
+            for (int i = 1; i < garageGrid.GetLength(0) - 1; i++)
             {
-                for (int j = 0; j < garageGrid.GetLength(1) - 1; j++)
+                for (int j = 1; j < garageGrid.GetLength(1) - 1; j++)
                 {
-                    if (j % 8 != 0)
+                    if (j % 8 != 0) // Bredare körvägar
                     {
-                        garageGrid[i, j] = 3;
+                        garageGrid[i, j] = 3; // Markera som parkeringsplats
                     }
                 }
             }
         }
 
-        public static void PlaceVehicle(string vehicleType, int row, int col)
+        public static bool ParkVehicle(string vehicleType, out int row, out int col)
+        {
+            row = -1;
+            col = -1;
+
+            while (currentParkingCol < garageGrid.GetLength(1) - 4) 
+            {
+                if (currentParkingRow >= garageGrid.GetLength(0) - 4) 
+                {
+                    currentParkingRow = 1;
+                    currentParkingCol += 8; 
+                    continue;
+                }
+
+                bool canPark = true;
+                switch (vehicleType.ToLower())
+                {
+                    case "buss":
+                        canPark = CanParkBus(currentParkingRow, currentParkingCol);
+                        break;
+                    case "bil":
+                        canPark = CanParkCar(currentParkingRow, currentParkingCol);
+                        break;
+                    case "motorcykel":
+                        canPark = CanParkMotorcycle(currentParkingRow, currentParkingCol);
+                        break;
+                }
+
+                if (canPark)
+                {
+                    row = currentParkingRow;
+                    col = currentParkingCol;
+                    PlaceVehicle(vehicleType, row, col);
+                    currentParkingRow += GetVehicleHeight(vehicleType);
+                    return true;
+                }
+
+                currentParkingRow += 1;
+            }
+
+            return false;
+        }
+
+        private static void PlaceVehicle(string vehicleType, int row, int col)
         {
             switch (vehicleType.ToLower())
             {
                 case "buss":
-
+                    // Buss (4x4)
                     for (int i = 0; i < 4; i++)
                     {
-                        for (int j = 0; j < 2; j++)
+                        for (int j = 0; j < 4; j++)
                         {
                             garageGrid[row + i, col + j] = 6;
                         }
@@ -59,7 +103,7 @@ namespace Parkeringsgarage
                     break;
 
                 case "bil":
-
+                    // Bil (2x2)
                     for (int i = 0; i < 2; i++)
                     {
                         for (int j = 0; j < 2; j++)
@@ -69,48 +113,27 @@ namespace Parkeringsgarage
                     }
                     break;
 
-                case "Motorcykel":
-
-                    for (int i = 0; i < 1; i++)
+                case "motorcykel":
+                    // Motorcykel (1x2)
+                    for (int j = 0; j < 2; j++)
                     {
-                        for (int j = 0; j < 2; j++)
-                        {
-                            garageGrid[row + i, col + j] = 2;
-                        }
+                        garageGrid[row, col + j] = 2;
                     }
                     break;
             }
         }
 
-
-        public static bool CanParkBus(int row, int col)
+        private static bool CanParkBus(int row, int col)
         {
-            // Kontrollera 4x4 område
+            if (row + 3 >= garageGrid.GetLength(0) || col + 3 >= garageGrid.GetLength(1))
+                return false;
+
+            
             for (int i = 0; i < 4; i++)
             {
-                for (int j = 0; j < 2; j++)
+                for (int j = 0; j < 4; j++)
                 {
-                    if (row + i >= garageGrid.GetLength(0) ||
-                        col + j >= garageGrid.GetLength(1) ||
-                        garageGrid[row + i, col + j] != 3)
-                     {
-                         return false;
-                     }
-                }
-            }
-            return true;
-        }
-
-        public static bool CanParkCar(int row, int col)
-        {
-            // Kontrollera 4x4 område
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    if (row + i >= garageGrid.GetLength(0) ||
-                        col + j >= garageGrid.GetLength(1) ||
-                        garageGrid[row + i, col + j] != 3)
+                    if (garageGrid[row + i, col + j] != 3)
                     {
                         return false;
                     }
@@ -119,38 +142,67 @@ namespace Parkeringsgarage
             return true;
         }
 
-        public static bool CanParkMotorcycle(int row, int col)
+        private static bool CanParkCar(int row, int col)
         {
-            return  row < garageGrid.GetLength(0) && 
-                col < garageGrid.GetLength(1) &&
-                garageGrid[row, col] ==3;
+            if (row + 1 >= garageGrid.GetLength(0) || col + 1 >= garageGrid.GetLength(1))
+                return false;
+
+            
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    if (garageGrid[row + i, col + j] != 3)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
-        public static int GetVehicleHeight(string vehicleType)
+        private static bool CanParkMotorcycle(int row, int col)
         {
-            return vehicleType.ToLower()
-                switch
+            if (row >= garageGrid.GetLength(0) || col + 1 >= garageGrid.GetLength(1))
+                return false;
+
+            
+            for (int j = 0; j < 2; j++)
             {
-                "Buss" => 4,
-                "Bil" => 2,
-                "Motorcykel" => 1,
+                if (garageGrid[row, col + j] != 3)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static int GetVehicleHeight(string vehicleType)
+        {
+            return vehicleType.ToLower() switch
+            {
+                "buss" => 4,
+                "bil" => 2,
+                "motorcykel" => 1,
+                _ => 1
             };
         }
 
-        public static void DrawGarageFrame()
+        private static void DrawGarageFrame()
         {
+            
             for (int i = 0; i < garageGrid.GetLength(0); i++)
             {
                 garageGrid[i, 0] = 4;
-                garageGrid[i, garageGrid.GetLength (1) - 1] = 4;
+                garageGrid[i, garageGrid.GetLength(1) - 1] = 4;
             }
-
             for (int j = 0; j < garageGrid.GetLength(1); j++)
             {
-                garageGrid [j, 0] = 4;
-                garageGrid [garageGrid.GetLength(1) - 1, j] = 4;
+                garageGrid[0, j] = 4;
+                garageGrid[garageGrid.GetLength(0) - 1, j] = 4;
             }
 
+            
             for (int j = 15; j < 25; j++)
             {
                 garageGrid[garageGrid.GetLength(0) - 1, j] = 5;
@@ -160,7 +212,7 @@ namespace Parkeringsgarage
         public static void DisplayGrid()
         {
             Console.Clear();
-            Console.WriteLine("\n === Välkommen TILL SMART PARKING ===\n");
+            Console.WriteLine("\n    === VÄLKOMMEN TILL PARKERINGSHUSET ===\n");
 
             for (int row = 0; row < garageGrid.GetLength(0); row++)
             {
@@ -179,7 +231,7 @@ namespace Parkeringsgarage
                             break;
                         case 2: // Motorcykel
                             Console.ForegroundColor = ConsoleColor.Yellow;
-                            Console.Write("▓▓");
+                            Console.Write("██");
                             break;
                         case 3: // Ledig plats
                             Console.ForegroundColor = ConsoleColor.Blue;
@@ -206,7 +258,7 @@ namespace Parkeringsgarage
                 Console.WriteLine();
             }
 
-            // Legend
+            
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("\n    Legend:");
             Console.ForegroundColor = ConsoleColor.Blue;
@@ -220,9 +272,9 @@ namespace Parkeringsgarage
             Console.Write("- Bil (2x2)  ");
 
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("▓▓ ");
+            Console.Write("██ ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("- Motorcykel (1x1)  ");
+            Console.Write("- Motorcykel (1x2)  ");
 
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.Write("██ ");
@@ -245,10 +297,47 @@ namespace Parkeringsgarage
             Console.WriteLine("- Ingång");
             Console.WriteLine();
         }
-    }
 
-    
-   
+        public static double CalculateOccupancyRate()
+        {
+            int totalParkingSpaces = 0;
+            int occupiedSpaces = 0;
+
+            // Räkna totala antalet parkeringsrutor
+            for (int i = 1; i < garageGrid.GetLength(0) - 1; i++)
+            {
+                for (int j = 1; j < garageGrid.GetLength(1) - 1; j++)
+                {
+                    if (garageGrid[i, j] == 3 || 
+                        garageGrid[i, j] == 1 || 
+                        garageGrid[i, j] == 2 || 
+                        garageGrid[i, j] == 6)   
+                    {
+                        totalParkingSpaces++;
+                    }
+                }
+            }
+
+            // Räkna upptagna parkeringsrutor
+            foreach (var fordon in fordon)
+            {
+                if (fordon is Car)
+                {
+                    occupiedSpaces += 4;  
+                }
+                else if (fordon.GetType().Name == "Motorcykel")
+                {
+                    occupiedSpaces += 2;  
+                }
+                else 
+                {
+                    occupiedSpaces += 16; 
+                }
+            }
+
+            return totalParkingSpaces > 0 ? ((double)occupiedSpaces / totalParkingSpaces) * 100 : 0;
+        }
+    }
 }
 
     

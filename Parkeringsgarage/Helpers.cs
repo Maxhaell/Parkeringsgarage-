@@ -11,11 +11,10 @@ namespace Parkeringsgarage
         public string ElBil { get; set; }
         public string Brand { get; set; }
         public string Seats { get; set; }
-        public Helpers(string elBil, string brand, string seats)
+        public Helpers(string elBil)
         {
             ElBil = elBil;
-            Brand = brand;
-            Seats = seats;
+            
         }
     }
 
