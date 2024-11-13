@@ -116,7 +116,7 @@ namespace Parkeringsgarage
                     {
                         for (int j = 0; j < 2; j++)
                         {
-                            garageGrid[row + i, col + j] = 1;
+                            garageGrid[row + i, col + j] = 4;
                         }
                     }
                     break;
@@ -272,9 +272,20 @@ namespace Parkeringsgarage
                     }
                     else if (vehicle != null)
                     {
-                        // Visa fordonet i dess valda färg
+                        // Visa fordonet i dess valda färg och med korrekt symbol
                         Console.ForegroundColor = vehicle.Color;
-                        Console.Write("█"); // Fylld ruta för fordon
+                        switch (vehicle.GetType().Name.ToLower())
+                        {
+                            case "car":
+                                Console.Write("C"); // Car symbol
+                                break;
+                            case "motorcycle":
+                                Console.Write("M"); // Motorcycle symbol
+                                break;
+                            case "bus":
+                                Console.Write("B"); // Bus symbol
+                                break;
+                        }
                         Console.ResetColor();
                     }
                     else
