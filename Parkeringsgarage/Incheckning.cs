@@ -88,7 +88,7 @@ namespace Parkeringsgarage
         public static bool HandleVehicleCheckin(string vehicleType)
         {
             bool inCheckin = true;
-            string regNr = "", carBrand = "", color = "", parkTime = "";
+            string regNr = "", brand = "", selectedColorName = "", parkTime = "";
             ConsoleColor selectedColor = ConsoleColor.White;
             bool isElectric = false;
             int passengers = 0;
@@ -111,8 +111,8 @@ namespace Parkeringsgarage
                 Console.WriteLine($"Registrering av {vehicleType}");
                 Console.WriteLine("====");
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
-                Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(carBrand) ? $" (angivet: {carBrand})" : ""));
-                var selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
+                Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
+                selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
                 Console.WriteLine("3. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : "")); 
                 Console.WriteLine("4. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
 
@@ -136,7 +136,7 @@ namespace Parkeringsgarage
                         break;
                     case '2':
                         Console.WriteLine("\nSkriv in märke:");
-                        carBrand = Console.ReadLine() ?? string.Empty;
+                        brand = Console.ReadLine() ?? string.Empty;
                         break;
                     case '3':
                         Console.WriteLine("\nSkriv in färg:");
@@ -177,7 +177,7 @@ namespace Parkeringsgarage
                         }
                         break;
                     case '6':
-                        if (ValidateCheckin(regNr, carBrand, selectedColorName, parkTime))
+                        if (ValidateCheckin(regNr, brand, selectedColorName, parkTime))
                         {
                             Fordon vehicle;
                             if (vehicleType == "bil")
@@ -185,20 +185,19 @@ namespace Parkeringsgarage
                                 List<Helpers> helpers = new List<Helpers>();
                                 if (isElectric)
                                     helpers.Add(new Helpers("Ja"));
-                                vehicle = new Car(regNr, helpers);
+                                vehicle = new Car(regNr, selectedColor, helpers);
                             }
                             else
                             {
-                                vehicle = new Fordon(regNr);
+                                vehicle = new Fordon(regNr, selectedColor);
                             }
 
-                            ShowSummary(vehicleType, regNr, carBrand, selectedColorName, parkTime, isElectric, passengers);
+                            ShowSummary(vehicleType, regNr, brand, selectedColorName, parkTime, isElectric, passengers);
 
-                            int row, col;
-                            if (Garage.ParkVehicle(vehicleType, out row, out col))
+                            int row;
+                            int col;
+                            if (Garage.ParkVehicle(vehicleType, selectedColor, regNr, out row, out col))
                             {
-                                vehicle.Row = row;
-                                vehicle.Col = col;
                                 Garage.fordon.Add(vehicle);
 
                                 string platsInfo = vehicleType switch
@@ -208,8 +207,8 @@ namespace Parkeringsgarage
                                     "motorcykel" => $"(plats: rad {row + 1}, plats {col + 1})",
                                     _ => ""
                                 };
-
-                                Console.WriteLine($"\nFordon parkerat {platsInfo}");
+                                Garage.PlaceVehicle(vehicleType, row, col, selectedColor, regNr);
+                                Console.WriteLine($"\nFordon parkerat på position: Rad{row}, Col{col}");
                                 Console.WriteLine("Tryck Enter för att fortsätta...");
                                 Console.ReadLine();
                             }
@@ -228,10 +227,10 @@ namespace Parkeringsgarage
             return true;
         }
 
-        public static bool ValidateCheckin(string regNr, string carBrand, string color, string parkTime)
+        public static bool ValidateCheckin(string regNr, string brand, string selectedColorName, string parkTime)
         {
-            if (string.IsNullOrEmpty(regNr) || string.IsNullOrEmpty(carBrand) ||
-                string.IsNullOrEmpty(color) || string.IsNullOrEmpty(parkTime))
+            if (string.IsNullOrEmpty(regNr) || string.IsNullOrEmpty(brand) ||
+                string.IsNullOrEmpty(selectedColorName) || string.IsNullOrEmpty(parkTime))
             {
                 Console.WriteLine("\nAlla fält måste fyllas i!");
                 Console.WriteLine("Tryck Enter för att fortsätta...");
@@ -259,7 +258,7 @@ namespace Parkeringsgarage
             return true;
         }
 
-        public static void ShowSummary(string vehicleType, string regNr, string carBrand, string color, string parkTime, bool isElectric = false, int passengers = 0)
+        public static void ShowSummary(string vehicleType, string regNr, string brand, string selectedColorName, string parkTime, bool isElectric = false, int passengers = 0)
         {
             Console.Clear();
             Garage.DisplayGrid();
@@ -268,8 +267,8 @@ namespace Parkeringsgarage
             Console.WriteLine($"Fordonstyp: {vehicleType}");
             Console.WriteLine($"Storlek: {GetVehicleSize(vehicleType)}");
             Console.WriteLine($"Registreringsnummer: {regNr}");
-            Console.WriteLine($"Märke: {carBrand}");
-            Console.WriteLine($"Färg: {color}");
+            Console.WriteLine($"Märke: {brand}");
+            Console.WriteLine($"Färg: {selectedColorName}");
             if (vehicleType == "bil")
                 Console.WriteLine($"Elbil: {(isElectric ? "Ja" : "Nej")}");
             else if (vehicleType == "buss")

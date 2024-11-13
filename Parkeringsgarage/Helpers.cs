@@ -20,10 +20,17 @@ namespace Parkeringsgarage
 
         }
 
-        public static void VehicleColor(Car[] args, string Color)
-        {          
-            Console.ForegroundColor = ConsoleColor.Red;           
-            // Blue Green Cyan Red Magenta Yellow
+        public static void VehicleColor(Car[] args, string selectedColorName)
+        {
+            List<(string name, ConsoleColor color)> colorOptions = new()
+            {
+                ("röd ", ConsoleColor.Red),
+                ("grön ", ConsoleColor.Green),
+                ("blå ", ConsoleColor.Blue),
+                ("gul ", ConsoleColor.Yellow),
+                ("cyan ", ConsoleColor.Cyan),
+                ("magenta ", ConsoleColor.Magenta)
+            };
         }
     }
 

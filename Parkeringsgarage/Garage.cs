@@ -44,7 +44,14 @@ namespace Parkeringsgarage
             }
         }
 
-        public static bool ParkVehicle(string vehicleType, out int row, out int col)
+        public static string GetVehicleType(Fordon vehicle)
+        {
+            if (vehicle is Bus) return "buss";
+            if (vehicle is Car) return "bil";
+            return "motorcykel";
+        }
+
+        public static bool ParkVehicle(string vehicleType, ConsoleColor color, string regNr, out int row, out int col)
         {
             row = -1;
             col = -1;
@@ -76,7 +83,7 @@ namespace Parkeringsgarage
                 {
                     row = currentParkingRow;
                     col = currentParkingCol;
-                    PlaceVehicle(vehicleType, row, col);
+                    PlaceVehicle(vehicleType, row, col, color, regNr);
                     currentParkingRow += GetVehicleHeight(vehicleType);
                     return true;
                 }
@@ -87,12 +94,13 @@ namespace Parkeringsgarage
             return false;
         }
 
-        private static void PlaceVehicle(string vehicleType, int row, int col)
+        public static void PlaceVehicle(string vehicleType, int row, int col, ConsoleColor color, string regNr)
         {
+            Fordon vehicle;
             switch (vehicleType.ToLower())
             {
                 case "buss":
-                    // Buss (4x4)
+                    vehicle = new Bus(regNr, color, new List<Helpers>());
                     for (int i = 0; i < 4; i++)
                     {
                         for (int j = 0; j < 2; j++)
@@ -103,7 +111,7 @@ namespace Parkeringsgarage
                     break;
 
                 case "bil":
-                    // Bil (2x2)
+                    vehicle = new Car(regNr, color, new List<Helpers>());
                     for (int i = 0; i < 2; i++)
                     {
                         for (int j = 0; j < 2; j++)
@@ -114,13 +122,19 @@ namespace Parkeringsgarage
                     break;
 
                 case "motorcykel":
-                    // Motorcykel (1x2)
+                    vehicle = new Motorcycle(regNr, color, new List<Helpers>());
                     for (int j = 0; j < 2; j++)
                     {
                         garageGrid[row, col + j] = 2;
                     }
                     break;
+
+                    default:
+                    return;
             }
+            vehicle.Row = row;
+            vehicle.Col = col;
+            fordon.Add(vehicle);
         }
 
         private static bool CanParkBus(int row, int col)
@@ -179,13 +193,32 @@ namespace Parkeringsgarage
 
         private static int GetVehicleHeight(string vehicleType)
         {
-            return vehicleType.ToLower() switch
+            switch (vehicleType.ToLower())
             {
-                "buss" => 4,
-                "bil" => 2,
-                "motorcykel" => 1,
-                _ => 1
-            };
+                case "bus":
+                    return 4;
+                case "car":
+                    return 2;
+                case "motorcycle":
+                    return 1;
+                default:
+                    return 1;
+            }
+        }
+
+        private static int GetVehicleWidth(string vehicleType)
+        {
+            switch (vehicleType.ToLower())
+            {
+                case "bus":
+                    return 2;
+                case "car":
+                    return 2;
+                case "motorcycle":
+                    return 2;
+                default:
+                    return 1;
+            }
         }
 
         private static void DrawGarageFrame()
@@ -209,94 +242,89 @@ namespace Parkeringsgarage
             }
         }
 
+
         public static void DisplayGrid()
         {
-            Console.Clear();
-            Console.WriteLine("\n    === VÄLKOMMEN TILL PARKERINGSHUSET ===\n");
+            int width = garageGrid.GetLength(1);
+            int height = garageGrid.GetLength(0);
 
-            for (int row = 0; row < garageGrid.GetLength(0); row++)
+            // Rita övre ramen
+            Console.Write("┌");
+            for (int i = 0; i < width - 2; i++) Console.Write("─");
+            Console.WriteLine("┐");
+
+            for (int i = 0; i < height; i++)
             {
-                Console.Write("    ");
-                for (int col = 0; col < garageGrid.GetLength(1); col++)
+                for (int j = 0; j < width; j++)
                 {
-                    switch (garageGrid[row, col])
+                    // Hitta eventuellt fordon på denna position
+                    var vehicle = fordon.FirstOrDefault(v =>
+                        v.Row <= i && i < v.Row + GetVehicleHeight(v.GetType().Name.ToLower()) &&
+                        v.Col <= j && j < v.Col + GetVehicleWidth(v.GetType().Name.ToLower()));
+
+                    if (j == 0) // Vänster kant
                     {
-                        case 0: // Körväg
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write("░░");
-                            break;
-                        case 1: // Bil
-                       //     Console.ForegroundColor = Incheckning.HandleVehicleCheckin.List<colorOptions>;
-                            Console.Write("C");
-                            break;
-                        case 2: // Motorcykel
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write("M");
-                            break;
-                        case 3: // Ledig plats
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write("□□");
-                            break;
-                        case 4: // Väggar
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write("██");
-                            break;
-                        case 5: // Ingång
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                            Console.Write("▒▒");
-                            break;
-                        case 6: // Buss
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write("B");
-                            break;
-                        default:
-                            Console.ForegroundColor = ConsoleColor.White;
-                            Console.Write("??");
-                            break;
+                        Console.Write("│");
+                    }
+                    else if (j == width - 1) // Höger kant
+                    {
+                        Console.Write("│");
+                    }
+                    else if (vehicle != null)
+                    {
+                        // Visa fordonet i dess valda färg
+                        Console.ForegroundColor = vehicle.Color;
+                        Console.Write("█"); // Fylld ruta för fordon
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        // Visa olika typer av rutor baserat på grid-värdet
+                        switch (garageGrid[i, j])
+                        {
+                            case 0: // Tom yta
+                                Console.Write(" ");
+                                break;
+                            case 1: // Vertikal vägg
+                                Console.Write("│");
+                                break;
+                            case 2: // Horisontell vägg
+                                Console.Write("─");
+                                break;
+                            case 3: // Ledig parkeringsplats
+                                Console.Write("·");
+                                break;
+                            case 4: // Upptagen parkeringsplats
+                                Console.Write("■");
+                                break;
+                            case 5: // Körväg
+                                Console.Write(" ");
+                                break;
+                            case 6: // Parkerat fordon (används ej nu när vi har fordonslistan)
+                                Console.Write("■");
+                                break;
+                            default:
+                                Console.Write(" ");
+                                break;
+                        }
                     }
                 }
-                Console.WriteLine();
+                Console.WriteLine(); // Ny rad efter varje rad i griden
             }
 
-            
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.WriteLine("\n    Legend:");
-            //Console.ForegroundColor = ConsoleColor.Blue;
-            //Console.Write("    □□ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.Write("- Ledig plats  ");
+            // Rita nedre ramen
+            Console.Write("└");
+            for (int i = 0; i < width - 2; i++) Console.Write("─");
+            Console.WriteLine("┘");
 
-            //Console.ForegroundColor = ConsoleColor.Green;
-            //Console.Write("██ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.Write("- Bil (2x2)  ");
-
-            //Console.ForegroundColor = ConsoleColor.Yellow;
-            //Console.Write("██ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.Write("- Motorcykel (1x2)  ");
-
-            //Console.ForegroundColor = ConsoleColor.Magenta;
-            //Console.Write("██ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.WriteLine("- Buss (4x4)");
-
-            //Console.ForegroundColor = ConsoleColor.Red;
-            //Console.Write("    ██ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.Write("- Vägg  ");
-
-            //Console.ForegroundColor = ConsoleColor.DarkGray;
-            //Console.Write("░░ ");
-            //Console.ForegroundColor = ConsoleColor.White;
-            //Console.Write("- Körväg  ");
-
-            //Console.ForegroundColor = ConsoleColor.Cyan;
-            //Console.Write("▒▒ ");
-            Console.ForegroundColor = ConsoleColor.White;
-            //Console.WriteLine("- Ingång");
-            Console.WriteLine();
+            // Visa en förklaring av symbolerna
+            Console.WriteLine("\nFörklaring:");
+            Console.WriteLine("· = Ledig parkeringsplats");
+            Console.WriteLine("█ = Parkerat fordon");
+            Console.WriteLine("│ = Vägg");
+            Console.WriteLine("─ = Vägg");
         }
+
 
         public static double CalculateOccupancyRate()
         {
@@ -331,7 +359,7 @@ namespace Parkeringsgarage
                 }
                 else 
                 {
-                    occupiedSpaces += 16; 
+                    occupiedSpaces += 8; 
                 }
             }
 
