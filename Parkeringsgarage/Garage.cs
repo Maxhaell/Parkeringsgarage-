@@ -378,9 +378,9 @@ namespace Parkeringsgarage
             return totalParkingSpaces > 0 ? ((double)occupiedSpaces / totalParkingSpaces) * 100 : 0;
         }
 
-        public static void StartParkingTimer(Fordon vehicle, int minutes)
+        public static void StartParkingTimer(Fordon vehicle, int seconds)
         {
-            var timer = new ParkeringsTimer(vehicle.RegNr, minutes);
+            var timer = new ParkeringsTimer(vehicle.RegNr, seconds);
             vehicle.Timer = timer;
             activeTimers.Add(timer);
 
@@ -420,7 +420,7 @@ namespace Parkeringsgarage
             Console.SetCursorPosition(0, Console.WindowHeight - 3);
             Console.Write(new string(' ', Console.WindowWidth)); // Rensa raden
             Console.SetCursorPosition(0, Console.WindowHeight - 3);
-            Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Hours:D2}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
+            Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
 
             // Återställ cursorposition
             Console.SetCursorPosition(originalLeft, originalTop);
@@ -434,7 +434,7 @@ namespace Parkeringsgarage
                 var timeLeft = timer.EndTime - DateTime.Now;
                 if (timeLeft.TotalSeconds > 0)
                 {
-                    Console.WriteLine($"{timer.RegNr}: {timeLeft.Hours:D2}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
+                    Console.WriteLine($"{timer.RegNr}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
                 }
             }
         }

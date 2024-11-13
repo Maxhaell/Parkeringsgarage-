@@ -12,10 +12,10 @@ namespace Parkeringsgarage
         public DateTime EndTime { get; set; }
         public bool IsActive { get; set; }
 
-        public ParkeringsTimer(string regNr, int minutes)
+        public ParkeringsTimer(string regNr, int seconds)
         {
             RegNr = regNr;
-            EndTime = DateTime.Now.AddMinutes(minutes);
+            EndTime = DateTime.Now.AddSeconds(seconds);
             IsActive = true;
         }
     }
