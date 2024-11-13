@@ -16,6 +16,7 @@ namespace Parkeringsgarage
         public static Random random = new Random();
         private static int currentParkingRow = 1;
         private static int currentParkingCol = 1;
+        private static readonly List<ParkeringsTimer> activeTimers = new List<ParkeringsTimer>();
 
         public static void GarageGrid()
         {
@@ -376,8 +377,70 @@ namespace Parkeringsgarage
 
             return totalParkingSpaces > 0 ? ((double)occupiedSpaces / totalParkingSpaces) * 100 : 0;
         }
+
+        public static void StartParkingTimer(Fordon vehicle, int minutes)
+        {
+            var timer = new ParkeringsTimer(vehicle.RegNr, minutes);
+            vehicle.Timer = timer;
+            activeTimers.Add(timer);
+
+            // Starta en ny tråd för att hantera nedräkningen
+            Task.Run(() => RunTimer(vehicle));
+        }
+
+        private static async Task RunTimer(Fordon vehicle)
+        {
+            while (vehicle.Timer.IsActive)
+            {
+                var timeLeft = vehicle.Timer.EndTime - DateTime.Now;
+
+                if (timeLeft.TotalSeconds <= 0)
+                {
+                    vehicle.Timer.IsActive = false;
+                    Console.SetCursorPosition(0, Console.WindowHeight - 1);
+                    Console.WriteLine($"Parkering har löpt ut för fordon: {vehicle.RegNr}!");
+                    activeTimers.Remove(vehicle.Timer);
+                    break;
+                }
+
+                // Uppdatera tiden på skärmen
+                UpdateTimerDisplay(vehicle, timeLeft);
+
+                await Task.Delay(1000); // Vänta 1 sekund innan nästa uppdatering
+            }
+        }
+
+        private static void UpdateTimerDisplay(Fordon vehicle, TimeSpan timeLeft)
+        {
+            // Spara nuvarande cursorposition
+            int originalLeft = Console.CursorLeft;
+            int originalTop = Console.CursorTop;
+
+            // Flytta till timer-området (under garagevisningen)
+            Console.SetCursorPosition(0, Console.WindowHeight - 3);
+            Console.Write(new string(' ', Console.WindowWidth)); // Rensa raden
+            Console.SetCursorPosition(0, Console.WindowHeight - 3);
+            Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Hours:D2}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
+
+            // Återställ cursorposition
+            Console.SetCursorPosition(originalLeft, originalTop);
+        }
+
+        public static void DisplayActiveTimers()
+        {
+            Console.WriteLine("\nAktiva parkeringar:");
+            foreach (var timer in activeTimers.Where(t => t.IsActive))
+            {
+                var timeLeft = timer.EndTime - DateTime.Now;
+                if (timeLeft.TotalSeconds > 0)
+                {
+                    Console.WriteLine($"{timer.RegNr}: {timeLeft.Hours:D2}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
+                }
+            }
+        }
     }
 }
+
 
     
 

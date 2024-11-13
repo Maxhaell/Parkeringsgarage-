@@ -4,13 +4,14 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Parkeringsgarage
 {
     public class Incheckning
     {
-       // public static void List<List>colorOptions();
+        // public static void List<List>colorOptions();
 
         public static void CheckIn()
         {
@@ -113,7 +114,7 @@ namespace Parkeringsgarage
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
                 Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
                 selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
-                Console.WriteLine("3. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : "")); 
+                Console.WriteLine("3. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : ""));
                 Console.WriteLine("4. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
 
                 if (vehicleType == "bil")
@@ -146,7 +147,7 @@ namespace Parkeringsgarage
                             Console.WriteLine($"{i + 1}.{colorOptions[i].name}");
                         }
                         Console.ForegroundColor = ConsoleColor.White;
-                        if(int.TryParse(Console.ReadLine(),out int colorChoice) && colorChoice > 0 && colorChoice <= colorOptions.Count)
+                        if (int.TryParse(Console.ReadLine(), out int colorChoice) && colorChoice > 0 && colorChoice <= colorOptions.Count)
                         {
                             selectedColor = colorOptions[colorChoice - 1].color;
                         }
@@ -202,11 +203,16 @@ namespace Parkeringsgarage
 
                                 string platsInfo = vehicleType switch
                                 {
-                                    "buss" => $"(4x4 platser, från rad {row + 1}, plats {col + 1})",
+                                    "buss" => $"(4x2 platser, från rad {row + 1}, plats {col + 1})",
                                     "bil" => $"(2x2 platser, från rad {row + 1}, plats {col + 1})",
                                     "motorcykel" => $"(plats: rad {row + 1}, plats {col + 1})",
                                     _ => ""
                                 };
+                                if (int.TryParse(parkTime, out int minutes))
+                                {
+                                    Garage.StartParkingTimer(vehicle, minutes);
+                                    Console.WriteLine($"\nTimer startad för {regNr}. Parkeringstid: {minutes} minuter");
+                                }
                                 Garage.PlaceVehicle(vehicleType, row, col, selectedColor, regNr);
                                 Console.WriteLine($"\nFordon parkerat på position: Rad{row}, Col{col}");
                                 Console.WriteLine("Tryck Enter för att fortsätta...");
@@ -293,11 +299,12 @@ namespace Parkeringsgarage
 
         private static string GetVehicleSize(string vehicleType) => vehicleType switch
         {
-            "buss" => "4x4 platser",
+            "buss" => "4x2 platser",
             "bil" => "2x2 platser",
-            "motorcykel" => "1x1 plats",
+            "motorcykel" => "1x2 plats",
             _ => "okänd storlek"
         };
+
 
         public static void ParkingGuard()
         {

@@ -14,6 +14,7 @@ namespace Parkeringsgarage
         public int Row { get; set; }
         public int Col { get; set; }
         public ConsoleColor Color { get; set; }
+        public ParkeringsTimer Timer { get; set; }
 
         public Fordon(string regNr, ConsoleColor color)
         {
