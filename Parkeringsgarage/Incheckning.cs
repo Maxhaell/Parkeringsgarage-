@@ -20,6 +20,7 @@ namespace Parkeringsgarage
             bool running = true;
             while (running)
             {
+                Console.Clear ();
                 Garage.DisplayGrid();
                 Console.WriteLine("Välkommen till Smart Parking!");
                 Console.WriteLine("====================");
@@ -60,9 +61,9 @@ namespace Parkeringsgarage
                 Console.WriteLine("Välkommen Parkeringsgäst!");
                 Console.WriteLine("Vad har du för fordonstyp");
                 Console.WriteLine("====");
-                Console.WriteLine("Tryck 1 för bil (2x2 platser)");
-                Console.WriteLine("Tryck 2 för motorcykel (1x1 plats)");
-                Console.WriteLine("Tryck 3 för buss (4x4 platser)");
+                Console.WriteLine("Tryck 1 för bil ");
+                Console.WriteLine("Tryck 2 för motorcykel ");
+                Console.WriteLine("Tryck 3 för buss ");
                 Console.WriteLine("Tryck 0 för att gå tillbaka till huvudmenyn");
 
                 ConsoleKeyInfo key = Console.ReadKey();
@@ -308,27 +309,183 @@ namespace Parkeringsgarage
 
         public static void ParkingGuard()
         {
-            Console.Clear();
-            Garage.DisplayGrid();
-            Console.WriteLine("Välkommen Jan-Erik (Parkeringsvakt)");
-            Console.WriteLine("\nParkeringsöversikt:");
-            Console.WriteLine($"Totalt antal fordon: {Garage.fordon.Count}");
-
-            var parkedVehicles = Garage.fordon.GroupBy(v => v.GetType().Name)
-                                             .ToDictionary(g => g.Key, g => g.Count());
-
-            foreach (var vehicle in parkedVehicles)
+            bool inParkingGuardMenu = true;
+            while (inParkingGuardMenu)
             {
-                Console.WriteLine($"{vehicle.Key}: {vehicle.Value} st");
+                Console.Clear();
+                Garage.DisplayGrid();
+                Console.WriteLine("Välkommen Jan-Erik (Parkeringsvakt)");
+                Console.WriteLine("\nParkeringsöversikt:");
+                Console.WriteLine($"Totalt antal fordon: {Garage.fordon.Count}");
+
+                // Visa utgångna parkeringar med röd text
+                var expiredParkings = Garage.fordon.Where(v => v.Timer?.HasExpired == true &&
+                    (!v.ParkingFines?.Any(f => !f.IsPaid) ?? true)).ToList();
+
+                if (expiredParkings.Any())
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("\nUtgångna parkeringar som behöver åtgärdas:");
+                    foreach (var vehicle in expiredParkings)
+                    {
+                        var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
+                        Console.WriteLine($"Reg.nr: {vehicle.RegNr} - Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}");
+                    }
+                    Console.ResetColor();
+                }
+
+                Console.WriteLine("\nMeny:");
+                Console.WriteLine("1. Utfärda böter för utgången parkering");
+                Console.WriteLine("2. Visa alla parkeringar");
+                Console.WriteLine("3. Visa alla utfärdade böter");
+                Console.WriteLine("0. Återgå till huvudmenyn");
+
+                ConsoleKeyInfo choice = Console.ReadKey();
+                Console.Clear();
+
+                switch (choice.KeyChar)
+                {
+                    case '1':
+                        IssueFineForExpiredParking();
+                        break;
+                    case '2':
+                        ShowAllParkings();
+                        break;
+                    case '3':
+                        ShowAllFines();
+                        break;
+                    case '0':
+                        inParkingGuardMenu = false;
+                        break;
+                }
+            }
+        }
+
+        private static void ShowAllParkings()
+        {
+            throw new NotImplementedException();
+        }
+
+        private static void IssueFineForExpiredParking()
+        {
+            Console.Clear();
+            var expiredVehicles = Garage.fordon.Where(v => v.Timer?.HasExpired == true &&
+                (!v.ParkingFines?.Any(f => !f.IsPaid) ?? true)).ToList();
+
+            if (!expiredVehicles.Any())
+            {
+                Console.WriteLine("Det finns inga fordon med utgången parkeringstid som saknar böter.");
+                Console.WriteLine("\nTryck Enter för att fortsätta...");
+                Console.ReadLine();
+                return;
             }
 
-            
-            int totalSpots = Garage.numberOfParkingSpots;
-            int occupiedSpots = Garage.fordon.Count;
-            double occupancyRate = (double)occupiedSpots / totalSpots * 100;
-            Console.WriteLine($"\nBeläggningsgrad: {occupancyRate:F1}%");
+            Console.WriteLine("Fordon med utgången parkeringstid:");
+            foreach (var vehicle in expiredVehicles)
+            {
+                var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
+                string vehicleType = GetVehicleTypeName(vehicle);
 
-            Console.WriteLine("\nTryck Enter för att återgå...");
+                Console.WriteLine($"\nReg.nr: {vehicle.RegNr} ({vehicleType})");
+                Console.WriteLine($"Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}");
+                Console.WriteLine("----------------------------------------");
+            }
+
+            Console.WriteLine("\nAnge registreringsnummer för att utfärda böter (eller tryck Enter för att återgå):");
+            string regNr = Console.ReadLine()?.ToUpper() ?? "";
+
+            if (string.IsNullOrEmpty(regNr))
+                return;
+
+            var violator = expiredVehicles.FirstOrDefault(v => v.RegNr == regNr);
+            if (violator != null)
+            {
+                var overtime = DateTime.Now - violator.Timer.ExpiredAt.Value;
+
+                // Beräkna böter
+                double baseRate = GetBaseFineRate(violator);
+                double overtimeFee = Math.Ceiling(overtime.TotalHours) * 200;
+                double totalFine = baseRate + overtimeFee;
+
+                // Skapa ny bot
+                var fine = new ParkingFine
+                {
+                    IssueDate = DateTime.Now,
+                    Amount = totalFine,
+                    Reason = $"Överträdelse av parkeringstid med {overtime.Hours}h {overtime.Minutes}m",
+                    IsPaid = false
+                };
+
+                violator.ParkingFines ??= new List<ParkingFine>();
+                violator.ParkingFines.Add(fine);
+
+                // Visa bötesdetaljer
+                Console.WriteLine($"\nBöter utfärdade för fordon {regNr}:");
+                Console.WriteLine($"Grundavgift: {baseRate:F2} kr");
+                Console.WriteLine($"Övertidsavgift: {overtimeFee:F2} kr");
+                Console.WriteLine($"Totalt belopp: {totalFine:F2} kr");
+                Console.WriteLine($"Anledning: {fine.Reason}");
+            }
+            else
+            {
+                Console.WriteLine($"\nHittade inget fordon med registreringsnummer {regNr}");
+            }
+
+            Console.WriteLine("\nTryck Enter för att fortsätta...");
+            Console.ReadLine();
+        }
+
+        private static string GetVehicleTypeName(Fordon vehicle)
+        {
+            return vehicle switch
+            {
+                Car => "Bil",
+                Motorcycle => "Motorcykel",
+                Bus => "Buss",
+                _ => "Okänt fordon"
+            };
+        }
+
+        private static double GetBaseFineRate(Fordon vehicle)
+        {
+            return vehicle switch
+            {
+                Bus => 500,  
+                Car => 500,
+                Motorcycle => 500,
+                _ => 1000
+            };
+        }
+
+        private static void ShowAllFines()
+        {
+            Console.Clear();
+            var vehiclesWithFines = Garage.fordon.Where(v => v.ParkingFines?.Any() == true).ToList();
+
+            if (!vehiclesWithFines.Any())
+            {
+                Console.WriteLine("Inga böter har utfärdats.");
+                Console.WriteLine("\nTryck Enter för att fortsätta...");
+                Console.ReadLine();
+                return;
+            }
+
+            Console.WriteLine("=== Alla utfärdade böter ===\n");
+            foreach (var vehicle in vehiclesWithFines)
+            {
+                Console.WriteLine($"Fordon: {vehicle.RegNr} ({GetVehicleTypeName(vehicle)})");
+                foreach (var fine in vehicle.ParkingFines)
+                {
+                    Console.WriteLine($"Utfärdad: {fine.IssueDate:yyyy-MM-dd HH:mm}");
+                    Console.WriteLine($"Belopp: {fine.Amount:F2} kr");
+                    Console.WriteLine($"Status: {(fine.IsPaid ? "Betald" : "Obetald")}");
+                    Console.WriteLine($"Anledning: {fine.Reason}");
+                    Console.WriteLine("----------------------------------------");
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("\nTryck Enter för att fortsätta...");
             Console.ReadLine();
         }
 
@@ -353,9 +510,9 @@ namespace Parkeringsgarage
         private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
         {
             
-            return (totalRevenue: 2450.50,
+            return (totalRevenue: 0,
                     totalVehicles: Garage.fordon.Count,
-                    averageParkingTime: 120.0,
+                    averageParkingTime: 0,
                     occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
         }
     }

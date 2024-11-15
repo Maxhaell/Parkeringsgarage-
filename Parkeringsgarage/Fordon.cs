@@ -14,12 +14,14 @@ namespace Parkeringsgarage
         public int Row { get; set; }
         public int Col { get; set; }
         public ConsoleColor Color { get; set; }
-        public ParkeringsTimer Timer { get; set; }
+        public ParkingTimer Timer { get; set; }
+        public List<ParkingFine> ParkingFines { get; set; }
 
         public Fordon(string regNr, ConsoleColor color)
         {
             RegNr = regNr;
             Color = color;
+            ParkingFines = new List<ParkingFine>();
         }
     }
 

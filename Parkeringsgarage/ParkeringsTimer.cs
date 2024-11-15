@@ -6,17 +6,21 @@ using System.Threading.Tasks;
 
 namespace Parkeringsgarage
 {
-    public class ParkeringsTimer
+    public class ParkingTimer
     {
         public string RegNr { get; set; }
         public DateTime EndTime { get; set; }
         public bool IsActive { get; set; }
+        public bool HasExpired { get; set; }
+        public DateTime? ExpiredAt { get; set; }
 
-        public ParkeringsTimer(string regNr, int seconds)
+        public ParkingTimer(string regNr, int minutes)
         {
             RegNr = regNr;
-            EndTime = DateTime.Now.AddSeconds(seconds);
+            EndTime = DateTime.Now.AddMinutes(minutes);
             IsActive = true;
+            HasExpired = false;
+            ExpiredAt = null;
         }
     }
 }
