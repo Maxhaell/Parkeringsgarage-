@@ -14,10 +14,10 @@ namespace Parkeringsgarage
         public bool HasExpired { get; set; }
         public DateTime? ExpiredAt { get; set; }
 
-        public ParkingTimer(string regNr, int minutes)
+        public ParkingTimer(string regNr, int seconds)
         {
             RegNr = regNr;
-            EndTime = DateTime.Now.AddMinutes(minutes);
+            EndTime = DateTime.Now.AddSeconds(seconds);
             IsActive = true;
             HasExpired = false;
             ExpiredAt = null;

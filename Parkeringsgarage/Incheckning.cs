@@ -29,6 +29,7 @@ namespace Parkeringsgarage
                 Console.WriteLine("Tryck 1 för Parkeringsgäst");
                 Console.WriteLine("Tryck 2 för Parkeringsvakt");
                 Console.WriteLine("Tryck 3 för Parkeringschef");
+                Console.WriteLine("Tryck 4 för Utcheckning");
                 Console.WriteLine("Tryck 0 för att avsluta");
 
                 ConsoleKeyInfo key = Console.ReadKey();
@@ -48,6 +49,146 @@ namespace Parkeringsgarage
                     case '3':
                         ParkingOwner();
                         break;
+                    case '4':
+                        CheckOutVehicle();
+                        break;
+
+                        
+                }
+            }
+        }
+        private static void CheckOutVehicle()
+        {
+            Console.Clear();
+            Garage.DisplayGrid();
+
+            if (!Garage.fordon.Any())
+            {
+                Console.WriteLine("\nDet finns inga parkerade fordon att checka ut.");
+                Console.WriteLine("\nTryck Enter för att återgå...");
+                Console.ReadLine();
+                return;
+            }
+
+            Console.WriteLine("\nParkerade fordon:");
+            foreach (var vehicle in Garage.fordon)
+            {
+                string vehicleType = vehicle switch
+                {
+                    Car => "Bil",
+                    Motorcycle => "Motorcykel",
+                    Bus => "Buss",
+                    _ => "Okänt fordon"
+                };
+
+                TimeSpan? timeLeft = null;
+                if (vehicle.Timer?.IsActive == true)
+                {
+                    timeLeft = vehicle.Timer.EndTime - DateTime.Now;
+                }
+
+                string timeInfo = timeLeft.HasValue ?
+                    (timeLeft.Value.TotalSeconds > 0 ?
+                        $" - Tid kvar: {timeLeft.Value.Hours:D2}:{timeLeft.Value.Minutes:D2}:{timeLeft.Value.Seconds:D2}" :
+                        " - Tiden har löpt ut") :
+                    "";
+
+                Console.WriteLine($"{vehicle.RegNr} ({vehicleType}){timeInfo}");
+            }
+
+            Console.WriteLine("\nAnge registreringsnummer för utcheckning (eller tryck Enter för att återgå):");
+            string regNr = Console.ReadLine()?.ToUpper() ?? "";
+
+            if (string.IsNullOrEmpty(regNr))
+                return;
+
+            var vehicleToRemove = Garage.fordon.FirstOrDefault(v => v.RegNr == regNr);
+            if (vehicleToRemove != null)
+            {
+                // Beräkna kostnad
+                double cost = CalculatePayment(vehicleToRemove);
+
+                // Kontrollera om det finns obetalda böter
+                var unpaidFines = vehicleToRemove.ParkingFines?.Where(f => !f.IsPaid).ToList() ?? new List<ParkingFine>();
+                if (unpaidFines.Any())
+                {
+                    Console.WriteLine("\nObetalda böter:");
+                    foreach (var fine in unpaidFines)
+                    {
+                        Console.WriteLine($"Bot utfärdad: {fine.IssueDate:yyyy-MM-dd HH:mm}");
+                        Console.WriteLine($"Belopp: {fine.Amount:F2} kr");
+                        Console.WriteLine($"Anledning: {fine.Reason}");
+                        cost += fine.Amount;
+                    }
+                }
+
+                Console.WriteLine($"\nTotal kostnad att betala: {cost:F2} kr");
+                Console.WriteLine("Tryck Enter för att betala och checka ut...");
+                Console.ReadLine();
+
+                // Ta bort fordonet från garaget
+                ClearVehicleFromGrid(vehicleToRemove);
+                Garage.fordon.Remove(vehicleToRemove);
+
+                Console.WriteLine($"\nFordon {regNr} har checkats ut. Välkommen åter!");
+                Console.WriteLine("Tryck Enter för att fortsätta...");
+                Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine($"\nHittade inget fordon med registreringsnummer {regNr}");
+                Console.WriteLine("Tryck Enter för att fortsätta...");
+                Console.ReadLine();
+            }
+        }
+
+        private static double CalculatePayment(Fordon vehicle)
+        {
+            if (vehicle.Timer == null) return 0;
+
+            TimeSpan parkingTime;
+            if (vehicle.Timer.HasExpired)
+            {
+                parkingTime = vehicle.Timer.ExpiredAt.Value - vehicle.Timer.EndTime.AddMinutes(-vehicle.Timer.EndTime.Minute);
+            }
+            else
+            {
+                parkingTime = DateTime.Now - vehicle.Timer.EndTime.AddMinutes(-vehicle.Timer.EndTime.Minute);
+            }
+
+            double pricePerMinute = vehicle switch
+            {
+                Bus => 4.0,
+                Car car when car.ElBil.Any(h => h.ElBil == "Ja") => 1.0,
+                Car => 2.0,
+                Motorcycle => 1.0,
+                _ => 2.0
+            };
+
+            return Math.Ceiling(parkingTime.TotalMinutes) * pricePerMinute;
+        }
+
+        private static void ClearVehicleFromGrid(Fordon vehicle)
+        {
+            int height = vehicle switch
+            {
+                Bus => 4,
+                Car => 2,
+                Motorcycle => 1,
+                _ => 1
+            };
+
+            int width = 2; // Alla fordon har bredd 2
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    if (vehicle.Row + i < Garage.garageGrid.GetLength(0) &&
+                        vehicle.Col + j < Garage.garageGrid.GetLength(1))
+                    {
+                        Garage.garageGrid[vehicle.Row + i, vehicle.Col + j] = 3; // Markera som ledig
+                    }
                 }
             }
         }
@@ -113,17 +254,23 @@ namespace Parkeringsgarage
                 Console.WriteLine($"Registrering av {vehicleType}");
                 Console.WriteLine("====");
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
-                Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
+                //Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
                 selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
-                Console.WriteLine("3. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : ""));
-                Console.WriteLine("4. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
+                Console.WriteLine("2. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : ""));
+                Console.WriteLine("3. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
+
+
 
                 if (vehicleType == "bil")
-                    Console.WriteLine("5. Är det en elbil?" + (isElectric ? " (Ja)" : " (Nej)"));
+                    Console.WriteLine("4. Är det en elbil?" + (isElectric ? " (Ja)" : " (Nej)"));
                 else if (vehicleType == "buss")
-                    Console.WriteLine("5. Antal passagerare" + (passengers > 0 ? $" (angivet: {passengers})" : ""));
+                    Console.WriteLine("4. Antal passagerare" + (passengers > 0 ? $" (angivet: {passengers})" : ""));
 
-                Console.WriteLine("6. Slutför registrering");
+                else if (vehicleType == "motorcykel")
+                    Console.WriteLine("4. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
+
+
+                Console.WriteLine("5. Slutför registrering");
                 Console.WriteLine("0. Gå tillbaka");
 
                 ConsoleKeyInfo choice = Console.ReadKey();
@@ -136,11 +283,11 @@ namespace Parkeringsgarage
                         Console.WriteLine("\nSkriv in registreringsnummer:");
                         regNr = Console.ReadLine()?.ToUpper() ?? string.Empty;
                         break;
+                    //case '2':
+                        //Console.WriteLine("\nSkriv in märke:");
+                        //brand = Console.ReadLine() ?? string.Empty;
+                        //break;
                     case '2':
-                        Console.WriteLine("\nSkriv in märke:");
-                        brand = Console.ReadLine() ?? string.Empty;
-                        break;
-                    case '3':
                         Console.WriteLine("\nSkriv in färg:");
                         for (int i = 0; i < colorOptions.Count; i++)
                         {
@@ -158,11 +305,11 @@ namespace Parkeringsgarage
                             Console.ReadLine();
                         }
                         break;
-                    case '4':
+                    case '3':
                         Console.WriteLine("\nHur länge vill du parkera? (minuter)");
                         parkTime = Console.ReadLine() ?? "0";
                         break;
-                    case '5':
+                    case '4':
                         if (vehicleType == "bil")
                         {
                             Console.WriteLine("\nÄr det en elbil? (j/n):");
@@ -177,9 +324,15 @@ namespace Parkeringsgarage
                                 Console.ReadLine();
                             }
                         }
+                        
+                        else 
+                        {
+                            Console.WriteLine("\nSkriv in märke:");
+                            brand = Console.ReadLine() ?? string.Empty;
+                        }
                         break;
-                    case '6':
-                        if (ValidateCheckin(regNr, brand, selectedColorName, parkTime))
+                    case '5':
+                        if (ValidateCheckin(regNr, selectedColorName, parkTime))
                         {
                             Fordon vehicle;
                             if (vehicleType == "bil")
@@ -234,9 +387,9 @@ namespace Parkeringsgarage
             return true;
         }
 
-        public static bool ValidateCheckin(string regNr, string brand, string selectedColorName, string parkTime)
+        public static bool ValidateCheckin(string regNr, string selectedColorName, string parkTime)
         {
-            if (string.IsNullOrEmpty(regNr) || string.IsNullOrEmpty(brand) ||
+            if (string.IsNullOrEmpty(regNr) || 
                 string.IsNullOrEmpty(selectedColorName) || string.IsNullOrEmpty(parkTime))
             {
                 Console.WriteLine("\nAlla fält måste fyllas i!");
@@ -274,13 +427,16 @@ namespace Parkeringsgarage
             Console.WriteLine($"Fordonstyp: {vehicleType}");
             Console.WriteLine($"Storlek: {GetVehicleSize(vehicleType)}");
             Console.WriteLine($"Registreringsnummer: {regNr}");
-            Console.WriteLine($"Märke: {brand}");
+           
             Console.WriteLine($"Färg: {selectedColorName}");
             if (vehicleType == "bil")
                 Console.WriteLine($"Elbil: {(isElectric ? "Ja" : "Nej")}");
             else if (vehicleType == "buss")
                 Console.WriteLine($"Antal passagerare: {passengers}");
+            else if (vehicleType == "motorcykel")
+                Console.WriteLine($"Märke: {brand}");
             Console.WriteLine($"Parkeringstid: {parkTime} minuter");
+            
 
             // Beräkna pris baserat på fordonstyp och tid
             double pricePerMinute = vehicleType switch
@@ -501,7 +657,7 @@ namespace Parkeringsgarage
             Console.WriteLine($"Totala intäkter: {statistics.totalRevenue:F2}kr");
             Console.WriteLine($"Antal fordon: {statistics.totalVehicles}");
             Console.WriteLine($"Genomsnittlig parkeringstid: {statistics.averageParkingTime:F1} minuter");
-            Console.WriteLine($"Beläggningsgrad: {statistics.occupancyRate:F1}%");
+            //Console.WriteLine($"Beläggningsgrad: {statistics.occupancyRate:F1}%");
 
             Console.WriteLine("\nTryck Enter för att återgå...");
             Console.ReadLine();
@@ -515,5 +671,6 @@ namespace Parkeringsgarage
                     averageParkingTime: 0,
                     occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
         }
+
     }
 }

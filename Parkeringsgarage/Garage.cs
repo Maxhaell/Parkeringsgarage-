@@ -97,26 +97,26 @@ namespace Parkeringsgarage
 
         public static void PlaceVehicle(string vehicleType, int row, int col, ConsoleColor color, string regNr)
         {
+            // Kontrollera att positionen är inom giltiga gränser
+            if (row < 1 || col < 1 || row >= garageGrid.GetLength(0) - 1 || col >= garageGrid.GetLength(1) - 1)
+                return;
+
             Fordon vehicle;
             switch (vehicleType.ToLower())
             {
-                case "buss":
-                    vehicle = new Bus(regNr, color, new List<Helpers>());
-                    for (int i = 0; i < 4; i++)
-                    {
-                        for (int j = 0; j < 2; j++)
-                        {
-                            garageGrid[row + i, col + j] = 6;
-                        }
-                    }
-                    break;
-
                 case "bil":
+                    // Kontrollera utrymme för bil (2x2)
+                    if (row + 1 >= garageGrid.GetLength(0) - 1 || col + 1 >= garageGrid.GetLength(1) - 1)
+                        return;
+
                     vehicle = new Car(regNr, color, new List<Helpers>());
+                    // Placera bilen på lediga parkeringsrutor
                     for (int i = 0; i < 2; i++)
                     {
                         for (int j = 0; j < 2; j++)
                         {
+                            if (garageGrid[row + i, col + j] != 3) // Kontrollera att rutan är ledig
+                                return;
                             garageGrid[row + i, col + j] = 4;
                         }
                     }
@@ -126,16 +126,36 @@ namespace Parkeringsgarage
                     vehicle = new Motorcycle(regNr, color, new List<Helpers>());
                     for (int j = 0; j < 2; j++)
                     {
+                        if (garageGrid[row, col + j] != 3)
+                            return;
                         garageGrid[row, col + j] = 2;
                     }
                     break;
 
-                    default:
+                case "buss":
+                    // Kontrollera utrymme för buss (4x2)
+                    if (row + 3 >= garageGrid.GetLength(0) - 1 || col + 1 >= garageGrid.GetLength(1) - 1)
+                        return;
+
+                    vehicle = new Bus(regNr, color, new List<Helpers>());
+                    for (int i = 0; i < 4; i++)
+                    {
+                        for (int j = 0; j < 2; j++)
+                        {
+                            if (garageGrid[row + i, col + j] != 3)
+                                return;
+                            garageGrid[row + i, col + j] = 6;
+                        }
+                    }
+                    break;
+
+                default:
                     return;
             }
+
             vehicle.Row = row;
             vehicle.Col = col;
-            
+            fordon.Add(vehicle);
         }
 
         private static bool CanParkBus(int row, int col)
@@ -159,7 +179,7 @@ namespace Parkeringsgarage
 
         private static bool CanParkCar(int row, int col)
         {
-            if (row + 1 >= garageGrid.GetLength(0) || col + 1 >= garageGrid.GetLength(1))
+            if (row >= garageGrid.GetLength(0) || col + 1 >= garageGrid.GetLength(1))
                 return false;
 
             
@@ -262,9 +282,11 @@ namespace Parkeringsgarage
                 for (int j = 0; j < width; j++)
                 {
                     // Hitta eventuellt fordon på denna position
+
                     var vehicle = fordon.FirstOrDefault(v =>
                         v.Row <= i && i < v.Row + GetVehicleHeight(v.GetType().Name.ToLower()) &&
                         v.Col <= j && j < v.Col + GetVehicleWidth(v.GetType().Name.ToLower()));
+                    
 
                     if (j == 0) // Vänster kant
                     {
@@ -276,8 +298,10 @@ namespace Parkeringsgarage
                     }
                     else if (vehicle != null)
                     {
+                        
                         // Visa fordonet i dess valda färg och med korrekt symbol
                         Console.ForegroundColor = vehicle.Color;
+                        
                         switch (vehicle.GetType().Name.ToLower())
                         {
                             case "car":
@@ -329,6 +353,7 @@ namespace Parkeringsgarage
                     }
                 }
                 Console.WriteLine(); // Ny rad efter varje rad i griden
+               
                 
             }
 
