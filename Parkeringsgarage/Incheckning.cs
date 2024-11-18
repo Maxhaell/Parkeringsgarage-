@@ -254,7 +254,6 @@ namespace Parkeringsgarage
                 Console.WriteLine($"Registrering av {vehicleType}");
                 Console.WriteLine("====");
                 Console.WriteLine("1. Ange registreringsnummer" + (!string.IsNullOrEmpty(regNr) ? $" (angivet: {regNr})" : ""));
-                //Console.WriteLine("2. Ange märke" + (!string.IsNullOrEmpty(brand) ? $" (angivet: {brand})" : ""));
                 selectedColorName = colorOptions.FirstOrDefault(X => X.color == selectedColor).name;
                 Console.WriteLine("2. Ange färg" + (selectedColor != ConsoleColor.White ? $" (angivet: {selectedColorName})" : ""));
                 Console.WriteLine("3. Ange parkeringstid" + (!string.IsNullOrEmpty(parkTime) ? $" (angivet: {parkTime} minuter)" : ""));
@@ -283,10 +282,7 @@ namespace Parkeringsgarage
                         Console.WriteLine("\nSkriv in registreringsnummer:");
                         regNr = Console.ReadLine()?.ToUpper() ?? string.Empty;
                         break;
-                    //case '2':
-                        //Console.WriteLine("\nSkriv in märke:");
-                        //brand = Console.ReadLine() ?? string.Empty;
-                        //break;
+                  
                     case '2':
                         Console.WriteLine("\nSkriv in färg:");
                         for (int i = 0; i < colorOptions.Count; i++)

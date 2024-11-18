@@ -264,7 +264,7 @@ namespace Parkeringsgarage
         }
 
 
-        public static void DisplayGrid()
+        public static void DisplayGrid(string[] args)
         {
             Console.Clear();
             int width = garageGrid.GetLength(1);
@@ -474,6 +474,28 @@ namespace Parkeringsgarage
                     Console.WriteLine($"{timer.RegNr}:{timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
                 }
             }
+        }
+
+        
+        
+            public static double CalculateParking(Fordon vehicle)
+            {
+                if (vehicle.Timer == null) return 0;
+
+                double pricePerMinute = vehicle switch
+                {
+                    Car => 2.0,
+                    Bus => 4.0,
+                    Motorcycle => 1.0,
+                    _ => 2.0
+                };
+
+                return 60 * pricePerMinute; // För en timme
+            }
+        
+        public static void DisplayGrid()
+        {
+            throw new NotImplementedException();
         }
     }
 }
