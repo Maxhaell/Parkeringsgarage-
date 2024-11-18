@@ -437,10 +437,11 @@ namespace Parkeringsgarage
             // Beräkna pris baserat på fordonstyp och tid
             double pricePerMinute = vehicleType switch
             {
-                "buss" => 4.0,    // Högre pris för buss (4x4)
-                "bil" => isElectric ? 1.0 : 2.0,  // Rabatt för elbil
-                "motorcykel" => 1.0,
-                _ => 2.0
+                // samma pris för alla typer, men enkelt att ändra i framtiden.
+                "buss" => 1.5,   
+                "bil" => isElectric ? 1.5 : 1.5, 
+                "motorcykel" => 1.5,
+                _ => 1.5
             };
 
             double totalPrice = double.Parse(parkTime) * pricePerMinute;

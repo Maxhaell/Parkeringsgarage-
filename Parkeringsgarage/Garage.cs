@@ -264,7 +264,7 @@ namespace Parkeringsgarage
         }
 
 
-        public static void DisplayGrid(string[] args)
+        public static void DisplayGrid()
         {
             Console.Clear();
             int width = garageGrid.GetLength(1);
@@ -493,10 +493,7 @@ namespace Parkeringsgarage
                 return 60 * pricePerMinute; // För en timme
             }
         
-        public static void DisplayGrid()
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }
 
