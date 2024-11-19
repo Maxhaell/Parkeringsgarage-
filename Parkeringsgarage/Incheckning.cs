@@ -349,7 +349,7 @@ namespace Parkeringsgarage
                             int col;
                             if (Garage.ParkVehicle(vehicleType, selectedColor, regNr, out row, out col))
                             {
-                                Garage.fordon.Add(vehicle);
+                                //Garage.fordon.Add(vehicle);
 
                                 string platsInfo = vehicleType switch
                                 {

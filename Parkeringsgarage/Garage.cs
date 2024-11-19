@@ -57,6 +57,7 @@ namespace Parkeringsgarage
             row = -1;
             col = -1;
 
+
             while (currentParkingCol < garageGrid.GetLength(1) - 4) 
             {
                 if (currentParkingRow >= garageGrid.GetLength(0) - 4) 
