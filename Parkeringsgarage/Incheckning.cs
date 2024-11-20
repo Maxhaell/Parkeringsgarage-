@@ -11,7 +11,7 @@ namespace Parkeringsgarage
 {
     public class Incheckning
     {
-        // public static void List<List>colorOptions();
+       
 
         public static void CheckIn()
         {
@@ -89,7 +89,7 @@ namespace Parkeringsgarage
 
                 string timeInfo = timeLeft.HasValue ?
                     (timeLeft.Value.TotalSeconds > 0 ?
-                        $" - Tid kvar: {timeLeft.Value.Hours:D2}:{timeLeft.Value.Minutes:D2}:{timeLeft.Value.Seconds:D2}" :
+                        $" - Tid kvar: {timeLeft.Value.Minutes:D2}:{timeLeft.Value.Seconds:D2}" :
                         " - Tiden har löpt ut") :
                     "";
 
@@ -149,11 +149,11 @@ namespace Parkeringsgarage
             TimeSpan parkingTime;
             if (vehicle.Timer.HasExpired)
             {
-                parkingTime = vehicle.Timer.ExpiredAt.Value - vehicle.Timer.EndTime.AddMinutes(-vehicle.Timer.EndTime.Minute);
+                parkingTime = vehicle.Timer.ExpiredAt.Value - vehicle.Timer.EndTime.AddSeconds(-vehicle.Timer.EndTime.Minute);
             }
             else
             {
-                parkingTime = DateTime.Now - vehicle.Timer.EndTime.AddMinutes(-vehicle.Timer.EndTime.Minute);
+                parkingTime = DateTime.Now - vehicle.Timer.EndTime.AddSeconds(-vehicle.Timer.EndTime.Minute);
             }
 
             double pricePerMinute = vehicle switch
@@ -165,7 +165,7 @@ namespace Parkeringsgarage
                 _ => 2.0
             };
 
-            return Math.Ceiling(parkingTime.TotalMinutes) * pricePerMinute;
+            return Math.Ceiling(parkingTime.TotalSeconds) * pricePerMinute;
         }
 
         private static void ClearVehicleFromGrid(Fordon vehicle)
@@ -349,7 +349,7 @@ namespace Parkeringsgarage
                             int col;
                             if (Garage.ParkVehicle(vehicleType, selectedColor, regNr, out row, out col))
                             {
-                                //Garage.fordon.Add(vehicle);
+                                Garage.fordon.Add(vehicle);
 
                                 string platsInfo = vehicleType switch
                                 {
@@ -481,8 +481,8 @@ namespace Parkeringsgarage
                     Console.WriteLine("\nUtgångna parkeringar som behöver åtgärdas:");
                     foreach (var vehicle in expiredParkings)
                     {
-                        var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
-                        Console.WriteLine($"Reg.nr: {vehicle.RegNr} - Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}");
+                        var overtime = DateTime.Now - vehicle.Timer.EndTime.AddSeconds(-vehicle.Timer.EndTime.Minute);
+                        Console.WriteLine($"Reg.nr: {vehicle.RegNr} - Övertid: {overtime.Minutes:D2}:{overtime.Seconds:D2}");
                     }
                     Console.ResetColor();
                 }
@@ -500,7 +500,9 @@ namespace Parkeringsgarage
                 {
                     case '1':
                         IssueFineForExpiredParking();
+
                         break;
+
                     case '2':
                         ShowAllParkings();
                         break;
@@ -514,16 +516,14 @@ namespace Parkeringsgarage
             }
         }
 
-        private static void ShowAllParkings()
-        {
-            throw new NotImplementedException();
-        }
-
         private static void IssueFineForExpiredParking()
         {
             Console.Clear();
-            var expiredVehicles = Garage.fordon.Where(v => v.Timer?.HasExpired == true &&
-                (!v.ParkingFines?.Any(f => !f.IsPaid) ?? true)).ToList();
+            var expiredVehicles = Garage.fordon.Where(v =>
+                v.Timer != null &&
+                DateTime.Now > v.Timer.EndTime &&
+                (!v.ParkingFines?.Any() ?? true)
+            ).ToList();
 
             if (!expiredVehicles.Any())
             {
@@ -536,7 +536,7 @@ namespace Parkeringsgarage
             Console.WriteLine("Fordon med utgången parkeringstid:");
             foreach (var vehicle in expiredVehicles)
             {
-                var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
+                var overtime = DateTime.Now - vehicle.Timer.EndTime;
                 string vehicleType = GetVehicleTypeName(vehicle);
 
                 Console.WriteLine($"\nReg.nr: {vehicle.RegNr} ({vehicleType})");
@@ -553,12 +553,12 @@ namespace Parkeringsgarage
             var violator = expiredVehicles.FirstOrDefault(v => v.RegNr == regNr);
             if (violator != null)
             {
-                var overtime = DateTime.Now - violator.Timer.ExpiredAt.Value;
+                var overtime = DateTime.Now - violator.Timer.EndTime;
 
                 // Beräkna böter
                 double baseRate = GetBaseFineRate(violator);
-                double overtimeFee = Math.Ceiling(overtime.TotalHours) * 200;
-                double totalFine = baseRate + overtimeFee;
+                
+                double totalFine = baseRate;
 
                 // Skapa ny bot
                 var fine = new ParkingFine
@@ -575,7 +575,7 @@ namespace Parkeringsgarage
                 // Visa bötesdetaljer
                 Console.WriteLine($"\nBöter utfärdade för fordon {regNr}:");
                 Console.WriteLine($"Grundavgift: {baseRate:F2} kr");
-                Console.WriteLine($"Övertidsavgift: {overtimeFee:F2} kr");
+                
                 Console.WriteLine($"Totalt belopp: {totalFine:F2} kr");
                 Console.WriteLine($"Anledning: {fine.Reason}");
             }
@@ -587,6 +587,62 @@ namespace Parkeringsgarage
             Console.WriteLine("\nTryck Enter för att fortsätta...");
             Console.ReadLine();
         }
+
+
+        private static void ShowAllParkings()
+        {
+            Console.Clear();
+            if (!Garage.fordon.Any())
+            {
+                Console.WriteLine("Inga fordon är parkerade just nu.");
+                Console.WriteLine("\nTryck Enter för att fortsätta...");
+                Console.ReadLine();
+                return;
+            }
+
+            Console.WriteLine("=== Aktuella parkeringar ===\n");
+            foreach (var vehicle in Garage.fordon)
+            {
+                try
+                {
+                    string vehicleType = GetVehicleTypeName(vehicle);
+
+                    if (vehicle.Timer != null)
+                    {
+                        TimeSpan timeLeft = vehicle.Timer.EndTime - DateTime.Now;
+                        string status;
+                        if (vehicle.Timer.HasExpired)
+                        {
+                            if (vehicle.Timer.ExpiredAt.HasValue)
+                            {
+                                var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
+                                status = $"Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}";
+                            }
+                            else
+                            {
+                                status = "Tiden har gått ut";
+                            }
+                        }
+                        else
+                        {
+                            status = $"Tid kvar: {Math.Max(0, timeLeft.Hours):D2}:{Math.Max(0, timeLeft.Minutes):D2}:{Math.Max(0, timeLeft.Seconds):D2}";
+                        }
+                        Console.WriteLine($"Reg.nr: {vehicle.RegNr} ({vehicleType})");
+                        Console.WriteLine($"Status: {status}");
+                        Console.WriteLine("----------------------------------------");
+                    }
+                }
+                catch (Exception)
+                {
+                    continue; // Skippa fordon som orsakar fel
+                }
+            }
+
+            Console.WriteLine("\nTryck Enter för att fortsätta...");
+            Console.ReadLine();
+        }
+
+
 
         private static string GetVehicleTypeName(Fordon vehicle)
         {
@@ -648,26 +704,115 @@ namespace Parkeringsgarage
             Garage.DisplayGrid();
             Console.WriteLine("Välkommen Karen! (Parkeringschef)");
 
-            // Beräkna intäkter och visa statistik
             var statistics = CalculateStatistics();
             Console.WriteLine($"\nDagens statistik:");
             Console.WriteLine($"Totala intäkter: {statistics.totalRevenue:F2}kr");
             Console.WriteLine($"Antal fordon: {statistics.totalVehicles}");
             Console.WriteLine($"Genomsnittlig parkeringstid: {statistics.averageParkingTime:F1} minuter");
-            //Console.WriteLine($"Beläggningsgrad: {statistics.occupancyRate:F1}%");
+            Console.WriteLine($"Beläggningsgrad: {statistics.occupancyRate:F1}%");
+
+            // Visa alla aktuella parkeringar
+            Console.WriteLine("\nAktuella parkeringar:");
+            foreach (var vehicle in Garage.fordon)
+            {
+                try
+                {
+                    string vehicleType = GetVehicleTypeName(vehicle);
+                    if (vehicle.Timer != null)
+                    {
+                        TimeSpan timeLeft = vehicle.Timer.EndTime - DateTime.Now;
+                        string status;
+                        if (vehicle.Timer.HasExpired)
+                        {
+                            if (vehicle.Timer.ExpiredAt.HasValue)
+                            {
+                                var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
+                                status = $"Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}";
+                            }
+                            else
+                            {
+                                status = "Tiden har gått ut";
+                            }
+                        }
+                        else
+                        {
+                            status = $"Tid kvar: {Math.Max(0, timeLeft.Hours):D2}:{Math.Max(0, timeLeft.Minutes):D2}:{Math.Max(0, timeLeft.Seconds):D2}";
+                        }
+                        Console.WriteLine($"Reg.nr: {vehicle.RegNr} ({vehicleType}) - {status}");
+                    }
+                }
+                catch (Exception)
+                {
+                    continue; // Skippa fordon som orsakar fel
+                }
+            }
 
             Console.WriteLine("\nTryck Enter för att återgå...");
             Console.ReadLine();
         }
 
+
+
         private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
         {
-            
-            return (totalRevenue: 0,
-                    totalVehicles: Garage.fordon.Count,
-                    averageParkingTime: 0,
-                    occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
+
+            double totalRevenue = 0;
+            int vehiclesWithParkingTime = 0;
+            double totalParkingMinutes = 0;
+
+            foreach (var vehicle in Garage.fordon)
+            {
+                
+                // Beräkna intäkter och parkeringstid för varje fordon
+                if (vehicle.Timer != null)
+                {
+                    TimeSpan parkingTime;
+
+                    if (vehicle.Timer.HasExpired && vehicle.Timer.ExpiredAt.HasValue)
+                    {
+                        // För utgångna parkeringar
+                        parkingTime = vehicle.Timer.EndTime - vehicle.Timer.EndTime.AddSeconds(-vehicle.Timer.EndTime.Minute);
+                    }
+                    else
+                    {
+                        // För aktiva parkeringar
+                        parkingTime = DateTime.Now - vehicle.Timer.EndTime.AddSeconds(-vehicle.Timer.EndTime.Minute);
+                    }
+
+                    //Räkna ut kostnad baserat på fordonstyp
+                    double pricePerMinute = vehicle switch
+                    {
+                        Bus => 1.5,
+                        Car car when car.ElBil?.Any(h => h.ElBil == "Ja") ?? false => 1.5,
+                        Car => 1.5,
+                        Motorcycle => 1.5,
+                        _ => 1.5
+                    };
+
+                    totalRevenue += Math.Abs(parkingTime.TotalSeconds) * pricePerMinute;
+                    totalParkingMinutes += Math.Abs(parkingTime.TotalSeconds);
+                    vehiclesWithParkingTime++;
+                }
+            }
+
+                double averageParkingTime = vehiclesWithParkingTime > 0 ? totalParkingMinutes / vehiclesWithParkingTime : 0;
+
+            return (
+                totalRevenue: totalRevenue,
+                totalVehicles: Garage.fordon.Count,
+                averageParkingTime: averageParkingTime,
+                occupancyRate: (double) Garage.fordon.Count / Garage.numberOfParkingSpots* 100
+            );
         }
+
+        //private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
+        //{
+
+        //    return (totalRevenue: 0,
+        //            totalVehicles: Garage.fordon.Count,
+        //            averageParkingTime: 0,
+        //            occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
+        //}
 
     }
 }

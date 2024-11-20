@@ -11,7 +11,7 @@ namespace Parkeringsgarage
     {
         public static int[,] garageGrid;
         public static int[,] parkingGrid;
-        public static int numberOfParkingSpots = 2;
+        public static int numberOfParkingSpots = 20;
         public static List<Fordon> fordon = new List<Fordon>();
         public static Random random = new Random();
         private static int currentParkingRow = 1;
@@ -434,7 +434,7 @@ namespace Parkeringsgarage
                     vehicle.Timer.HasExpired = true; // Ny property för att markera utgången tid
 
                     // Spara tiden när parkeringen löpte ut
-                    vehicle.Timer.ExpiredAt = DateTime.Now;
+                    //vehicle.Timer.ExpiredAt = DateTime.Now;
 
                     Console.SetCursorPosition(0, Console.WindowHeight - 1);
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -443,26 +443,26 @@ namespace Parkeringsgarage
                     break;
                 }
 
-                UpdateTimerDisplay(vehicle, timeLeft);
+                //UpdateTimerDisplay(vehicle, timeLeft);
                 await Task.Delay(1000);
             }
         }
 
-        private static void UpdateTimerDisplay(Fordon vehicle, TimeSpan timeLeft)
-        {
-            // Spara nuvarande cursorposition
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
+        //private static void UpdateTimerDisplay(Fordon vehicle, TimeSpan timeLeft)
+        //{
+        //    // Spara nuvarande cursorposition
+        //    int originalLeft = Console.CursorLeft;
+        //    int originalTop = Console.CursorTop;
 
-            // Flytta till timer-området (under garagevisningen)
-            Console.SetCursorPosition(0, Console.WindowHeight - 3);
-            Console.Write(new string(' ', Console.WindowWidth)); // Rensa raden
-            Console.SetCursorPosition(0, Console.WindowHeight - 3);
-            Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
+        //    // Flytta till timer-området (under garagevisningen)
+        //    Console.SetCursorPosition(0, Console.WindowHeight - 3);
+        //    Console.Write(new string(' ', Console.WindowWidth)); // Rensa raden
+        //    Console.SetCursorPosition(0, Console.WindowHeight - 3);
+        //    Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
 
-            // Återställ cursorposition
-            Console.SetCursorPosition(originalLeft, originalTop);
-        }
+        //    // Återställ cursorposition
+        //    Console.SetCursorPosition(originalLeft, originalTop);
+        //}
 
         public static void DisplayActiveTimers()
         {
