@@ -264,14 +264,13 @@ namespace Parkeringsgarage
             }
         }
 
-
+        //Ritar upp garagegrid
         public static void DisplayGrid()
         {
             Console.Clear();
             int width = garageGrid.GetLength(1);
             int height = garageGrid.GetLength(0);
 
-            // Rita övre ramen
 
             Console.Write("┌");
             for (int i = 0; i < width - 2; i++) Console.Write("─");
@@ -283,17 +282,16 @@ namespace Parkeringsgarage
                 for (int j = 0; j < width; j++)
                 {
                     // Hitta eventuellt fordon på denna position
-
                     var vehicle = fordon.FirstOrDefault(v =>
                         v.Row <= i && i < v.Row + GetVehicleHeight(v.GetType().Name.ToLower()) &&
                         v.Col <= j && j < v.Col + GetVehicleWidth(v.GetType().Name.ToLower()));
                     
 
-                    if (j == 0) // Vänster kant
+                    if (j == 0) 
                     {
                         Console.Write("│");
                     }
-                    else if (j == width - 1) // Höger kant
+                    else if (j == width - 1) 
                     {
                         Console.Write("│");
                     }
@@ -306,13 +304,13 @@ namespace Parkeringsgarage
                         switch (vehicle.GetType().Name.ToLower())
                         {
                             case "car":
-                                Console.Write("C"); // Car symbol
+                                Console.Write("C");
                                 break;
                             case "motorcycle":
-                                Console.Write("M"); // Motorcycle symbol
+                                Console.Write("M"); 
                                 break;
                             case "bus":
-                                Console.Write("B"); // Bus symbol
+                                Console.Write("B"); 
                                 break;
                         }
                         Console.ResetColor();
@@ -353,24 +351,12 @@ namespace Parkeringsgarage
                         }
                     }
                 }
-                Console.WriteLine(); // Ny rad efter varje rad i griden
-               
-                
+                Console.WriteLine();
             }
-
-            
             Console.Write("└");
             for (int i = 0; i < width - 2; i++) Console.Write("─");
             Console.WriteLine("┘");
-
-            //// Visa en förklaring av symbolerna
-            //Console.WriteLine("\nFörklaring:");
-            //Console.WriteLine("· = Ledig parkeringsplats");
-            //Console.WriteLine("█ = Parkerat fordon");
-            //Console.WriteLine("│ = Vägg");
-            //Console.WriteLine("─ = Vägg");
         }
-
 
         public static double CalculateOccupancyRate()
         {
@@ -418,7 +404,6 @@ namespace Parkeringsgarage
             vehicle.Timer = timer;
             activeTimers.Add(timer);
 
-            // Starta en ny tråd för att hantera nedräkningen
             Task.Run(() => RunTimer(vehicle));
         }
 
@@ -431,10 +416,10 @@ namespace Parkeringsgarage
                 if (timeLeft.TotalSeconds <= 0)
                 {
                     vehicle.Timer.IsActive = false;
-                    vehicle.Timer.HasExpired = true; // Ny property för att markera utgången tid
+                    vehicle.Timer.HasExpired = true; 
 
                     // Spara tiden när parkeringen löpte ut
-                    //vehicle.Timer.ExpiredAt = DateTime.Now;
+                    vehicle.Timer.ExpiredAt = DateTime.Now;
 
                     Console.SetCursorPosition(0, Console.WindowHeight - 1);
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -442,27 +427,8 @@ namespace Parkeringsgarage
                     Console.ResetColor();
                     break;
                 }
-
-                //UpdateTimerDisplay(vehicle, timeLeft);
-                await Task.Delay(1000);
             }
         }
-
-        //private static void UpdateTimerDisplay(Fordon vehicle, TimeSpan timeLeft)
-        //{
-        //    // Spara nuvarande cursorposition
-        //    int originalLeft = Console.CursorLeft;
-        //    int originalTop = Console.CursorTop;
-
-        //    // Flytta till timer-området (under garagevisningen)
-        //    Console.SetCursorPosition(0, Console.WindowHeight - 3);
-        //    Console.Write(new string(' ', Console.WindowWidth)); // Rensa raden
-        //    Console.SetCursorPosition(0, Console.WindowHeight - 3);
-        //    Console.WriteLine($"Tid kvar för {vehicle.RegNr}: {timeLeft.Minutes:D2}:{timeLeft.Seconds:D2}");
-
-        //    // Återställ cursorposition
-        //    Console.SetCursorPosition(originalLeft, originalTop);
-        //}
 
         public static void DisplayActiveTimers()
         {
@@ -477,23 +443,21 @@ namespace Parkeringsgarage
             }
         }
 
-        
-        
-            public static double CalculateParking(Fordon vehicle)
+        public static double CalculateParking(Fordon vehicle)
+        {
+            if (vehicle.Timer == null) return 0;
+
+            double pricePerMinute = vehicle switch
             {
-                if (vehicle.Timer == null) return 0;
+                Car => 1.5,
+                Bus => 1.5,
+                Motorcycle => 1.5,
+                _ => 1.5
+            };
 
-                double pricePerMinute = vehicle switch
-                {
-                    Car => 2.0,
-                    Bus => 4.0,
-                    Motorcycle => 1.0,
-                    _ => 2.0
-                };
+            return 60 * pricePerMinute; // För en timme
+        }
 
-                return 60 * pricePerMinute; // För en timme
-            }
-        
 
     }
 }

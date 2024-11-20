@@ -20,9 +20,6 @@ namespace Parkeringsgarage
             ElBil = elBil;
 
         }
-
-        
-
         public class Garage
         {
             public static double CalculateParking(Fordon vehicle)
@@ -31,10 +28,10 @@ namespace Parkeringsgarage
 
                 double pricePerMinute = vehicle switch
                 {
-                    Car => 2.0,
-                    Bus => 4.0,
-                    Motorcycle => 1.0,
-                    _ => 2.0
+                    Car => 1.5,
+                    Bus => 1.5,
+                    Motorcycle => 1.5,
+                    _ => 1
                 };
 
                 return 60 * pricePerMinute; // För en timme
@@ -44,21 +41,6 @@ namespace Parkeringsgarage
         {
             price = Math.Abs(price);
             return price * 1.5;
-        }
-        //public static void VehicleColor(Car[] args, string selectedColorName)
-        //{
-        //    List<(string name, ConsoleColor color)> colorOptions = new()
-        //    {
-        //        ("röd ", ConsoleColor.Red),
-        //        ("grön ", ConsoleColor.Green),
-        //        ("blå ", ConsoleColor.Blue),
-        //        ("gul ", ConsoleColor.Yellow),
-        //        ("cyan ", ConsoleColor.Cyan),
-        //        ("magenta ", ConsoleColor.Magenta)
-        //    };
-        //}
+        }  
     }
-
-
-
 }

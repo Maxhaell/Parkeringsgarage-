@@ -43,16 +43,5 @@ namespace TDD
             Assert.AreEqual("Motorcycle DEF456", motorcycleString);
             Assert.AreEqual("Bus GHI789", busString);
         }
-
-
-
-        //[TestMethod]
-        //public void VehicleColorTest()
-        //{
-        //    Car expected = Console.ForegroundColor = ConsoleColor.Blue; 
-        //    Car result = Parkeringsgarage.Helpers.VehicleColor(Console.ForegroundColor = ConsoleColor.Blue);
-        //    Assert.AreEqual(expected, result);
-        //}
     }
-
 }

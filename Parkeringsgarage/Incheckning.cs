@@ -11,8 +11,6 @@ namespace Parkeringsgarage
 {
     public class Incheckning
     {
-       
-
         public static void CheckIn()
         {
             Garage.GarageGrid();
@@ -51,9 +49,7 @@ namespace Parkeringsgarage
                         break;
                     case '4':
                         CheckOutVehicle();
-                        break;
-
-                        
+                        break;   
                 }
             }
         }
@@ -158,11 +154,11 @@ namespace Parkeringsgarage
 
             double pricePerMinute = vehicle switch
             {
-                Bus => 4.0,
-                Car car when car.ElBil.Any(h => h.ElBil == "Ja") => 1.0,
-                Car => 2.0,
-                Motorcycle => 1.0,
-                _ => 2.0
+                Bus => 1.5,
+                Car car when car.ElBil.Any(h => h.ElBil == "Ja") => 1.5,
+                Car => 1.5,
+                Motorcycle => 1.5,
+                _ => 1
             };
 
             return Math.Ceiling(parkingTime.TotalSeconds) * pricePerMinute;
@@ -383,6 +379,7 @@ namespace Parkeringsgarage
             return true;
         }
 
+        // Kollar så att registrering är korrekt 
         public static bool ValidateCheckin(string regNr, string selectedColorName, string parkTime)
         {
             if (string.IsNullOrEmpty(regNr) || 
@@ -402,7 +399,7 @@ namespace Parkeringsgarage
                 return false;
             }
 
-            // registreringsnummer (svensk standard: ABC123)
+            // registreringsnummer (ABC123)
             if (!System.Text.RegularExpressions.Regex.IsMatch(regNr, @"^[A-Z]{3}\d{3}$"))
             {
                 Console.WriteLine("\nOgiltigt registreringsnummer. Använd formatet ABC123.");
@@ -414,6 +411,7 @@ namespace Parkeringsgarage
             return true;
         }
 
+        // Visar sammanfattning efter registreringen
         public static void ShowSummary(string vehicleType, string regNr, string brand, string selectedColorName, string parkTime, bool isElectric = false, int passengers = 0)
         {
             Console.Clear();
@@ -516,6 +514,7 @@ namespace Parkeringsgarage
             }
         }
 
+        // Parkeringsvakt bötfäller överskriden parkeringstid
         private static void IssueFineForExpiredParking()
         {
             Console.Clear();
@@ -727,7 +726,7 @@ namespace Parkeringsgarage
                             if (vehicle.Timer.ExpiredAt.HasValue)
                             {
                                 var overtime = DateTime.Now - vehicle.Timer.ExpiredAt.Value;
-                                status = $"Övertid: {overtime.Hours:D2}:{overtime.Minutes:D2}:{overtime.Seconds:D2}";
+                                status = $"Övertid:{overtime.Minutes:D2}:{overtime.Seconds:D2}";
                             }
                             else
                             {
@@ -750,8 +749,6 @@ namespace Parkeringsgarage
             Console.WriteLine("\nTryck Enter för att återgå...");
             Console.ReadLine();
         }
-
-
 
         private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
         {
@@ -804,15 +801,5 @@ namespace Parkeringsgarage
                 occupancyRate: (double) Garage.fordon.Count / Garage.numberOfParkingSpots* 100
             );
         }
-
-        //private static (double totalRevenue, int totalVehicles, double averageParkingTime, double occupancyRate) CalculateStatistics()
-        //{
-
-        //    return (totalRevenue: 0,
-        //            totalVehicles: Garage.fordon.Count,
-        //            averageParkingTime: 0,
-        //            occupancyRate: (double)Garage.fordon.Count / Garage.numberOfParkingSpots * 100);
-        //}
-
     }
 }
